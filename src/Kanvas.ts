@@ -1,8 +1,8 @@
 import Konva from 'konva';
 import Helpers from './Helpers';
 import Upload from './Upload';
-import Resize from './resize';
-import Paint from './paint';
+import Resize from './Resize';
+import Paint from './Paint';
 
 export default class Kanvas {
   containerId: string;
