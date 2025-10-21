@@ -1,0 +1,7 @@
+.git
+.vscode/
+.DS_Store/
+node_modules/
+dist/
+pnpm-lock.yaml
+build.log

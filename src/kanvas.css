@@ -1,0 +1,19 @@
+.kanvas-wrapper {
+  width: fit-content;
+  height: fit-content;
+  background-color: #222;
+}
+
+.kanvas {
+  width: fit-content;
+  height: fit-content;
+}
+
+.kanvas-text {
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+.konvajs-content {
+  background: black;
+}

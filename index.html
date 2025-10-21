@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kanvas</title>
+  <meta name="description" content="Minimal index.html" />
+  <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="./src/kanvas.css" />
+  <script type="module" src="./dist/kanvas.esm.js"></script>
+  <style>
+    html, body { height:100%; font-family:system-ui; background: #333; color: #aaa; }
+  </style>
+</head>
+<body>
+  <div id="kanvas-container"></div>
+  <script type="module">
+    kanvas('kanvas-container');
+  </script>
+
+</body>
+</html>

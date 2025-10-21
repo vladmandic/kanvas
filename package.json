@@ -1,0 +1,37 @@
+{
+  "name": "@vladmandic/kanvas",
+  "version": "0.0.1",
+  "description": "Kanvas",
+  "main": "dist/kanvas.js",
+  "types": "types/src/kanvas.d.ts",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "build --profile development"
+  },
+  "author": "Vladimir Mandic <mandic00@live.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vladmandic/kanvas/issues"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladmandic/kanvas.git"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "esbuild": "^0.25.9",
+    "eslint": "8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "tslib": "^2.8.1",
+    "typedoc": "^0.28.11",
+    "typescript": "5.9.2"
+  }
+}
