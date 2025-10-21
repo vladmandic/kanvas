@@ -1,12 +1,10 @@
 # SD.Next Canvas
 
-## Install
+## Install and Run
 
-> npm install
-
-## Run
-
-> npm run dev
+> npm install  
+> npm run dev  
+> navigate to: <http://localhost:8000/index.html>  
 
 ## Working
 
