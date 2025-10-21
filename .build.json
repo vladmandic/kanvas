@@ -6,13 +6,10 @@
     "output": "build.log"
   },
   "profiles": {
-    "production": ["clean", "compile", "typings", "typedoc", "lint", "changelog"],
-    "development": ["serve", "watch", "compile"],
-    "lint": ["lint"],
-    "all": ["clean", "compile", "typings", "typedoc", "lint", "changelog", "serve", "watch"]
+    "development": ["serve", "watch", "compile", "lint"]
   },
   "watch": {
-    "locations": [ "src/**" ]
+    "locations": [ "src" ]
   },
   "clean": {
     "locations": ["types/*", "typedoc/*"]
@@ -94,9 +91,9 @@
   },
   "lint": {
     "locations": [ "src/*.ts" ],
-    "env": { "browser": true, "commonjs": true, "node": true, "es2020": true },
+    "env": { "browser": true, "commonjs": true, "node": true, "es2024": true },
     "parser": "@typescript-eslint/parser",
-    "parserOptions": { "ecmaVersion": 2020 },
+    "parserOptions": { "ecmaVersion": 2024 },
     "plugins": [ "@typescript-eslint" ],
     "extends": [ "eslint:recommended", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended" ],
     "ignorePatterns": [ "**/dist/**", "**/typedoc/**", "**/types/**", "**/node_modules/**" ],
