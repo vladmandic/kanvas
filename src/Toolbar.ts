@@ -6,19 +6,19 @@ export default class Toolbar {
     this.k = k;
     const container = document.getElementById(`${this.k.containerId}-toolbar`);
     container.innerHTML = `
-      <span class="kanvas-button active" title="select image layer" id="${this.k.containerId}-button-image">image</span>
-      <span class="kanvas-button" title="select mask layer" id="${this.k.containerId}-button-mask">mask</span>
+      <span class="kanvas-button active" title="select image layer" id="${this.k.containerId}-button-image">\udb84\udd6c</span>
+      <span class="kanvas-button" title="select mask layer" id="${this.k.containerId}-button-mask">\udb80\udee9</span>
       <span class="kanvas-separator"> | </span>
-      <span class="kanvas-button" title="upload image" id="${this.k.containerId}-button-upload">upload</span>
-      <span class="kanvas-button" title="reset stage" id="${this.k.containerId}-button-reset">reset</span>
+      <span class="kanvas-button" title="upload image" id="${this.k.containerId}-button-upload">\udb81\udd52</span>
+      <span class="kanvas-button" title="reset stage" id="${this.k.containerId}-button-reset">\uf1b8</span>
       <span class="kanvas-button" id="${this.k.containerId}-image-controls">
         <input type="range" id="${this.k.containerId}-image-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="image opacity" />
       </span>
       <span class="kanvas-separator"> | </span>
-      <span class="kanvas-button" title="remove image" id="${this.k.containerId}-button-remove">remove</span>
-      <span class="kanvas-button" title="resize image" id="${this.k.containerId}-button-resize">resize</span>
-      <span class="kanvas-button" title="crop image" id="${this.k.containerId}-button-crop">crop</span>
-      <span class="kanvas-button" title="paint controls" id="${this.k.containerId}-button-paint">paint</span>
+      <span class="kanvas-button" title="remove image" id="${this.k.containerId}-button-remove">\udb82\udde7</span>
+      <span class="kanvas-button" title="resize image" id="${this.k.containerId}-button-resize">\udb81\ude55</span>
+      <span class="kanvas-button" title="crop image" id="${this.k.containerId}-button-crop">\uee2e</span>
+      <span class="kanvas-button" title="paint controls" id="${this.k.containerId}-button-paint">\uf1fc</span>
       <span class="kanvas-button" id="${this.k.containerId}-paint-controls" style="display: none;">
         <input type="range" id="${this.k.containerId}-brush-size" class="kanvas-slider" min="1" max="100" step="1" value="10" title="brush size" />
         <input type="range" id="${this.k.containerId}-brush-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="brush opacity" />
@@ -40,8 +40,8 @@ export default class Toolbar {
         </select>
         <input type="color" id="${this.k.containerId}-brush-color" class="kanvas-colorpicker" value="#ffffff" title="brush color" />
       </span>
-      <span class="kanvas-button disabled" title="outpaint" id="${this.k.containerId}-button-outpaint">outpaint</span>
-      <span class="kanvas-button" title="image filters" id="${this.k.containerId}-button-filters">filters</span>
+      <span class="kanvas-button disabled" title="outpaint" id="${this.k.containerId}-button-outpaint">\udb80\udc4c</span>
+      <span class="kanvas-button" title="image filters" id="${this.k.containerId}-button-filters">\udb80\udef0</span>
       <span class="kanvas-button" id="${this.k.containerId}-filter-controls" style="display: none;">
         <input type="range" id="${this.k.containerId}-filter-value" class="kanvas-slider" min="0" max="100" step="1" value="10" title="filter value" />
         <select id="${this.k.containerId}-filter-name" class="kanvas-select" title="filter name">
@@ -57,10 +57,10 @@ export default class Toolbar {
           <option value="threshold">threshold</option>
         </select>
       </span>
-      <span class="kanvas-button disabled" title="draw text" id="${this.k.containerId}-button-text">text</span>
+      <span class="kanvas-button disabled" title="draw text" id="${this.k.containerId}-button-text">\udb80\ude84</span>
       <span class="kanvas-separator"> | </span>
-      <span class="kanvas-button" title="zoom in" id="${this.k.containerId}-button-zoomin">zoom in</span>
-      <span class="kanvas-button" title="zoom out" id="${this.k.containerId}-button-zoomout">zoom out</span>
+      <span class="kanvas-button" title="zoom in" id="${this.k.containerId}-button-zoomin">\uf531</span>
+      <span class="kanvas-button" title="zoom out" id="${this.k.containerId}-button-zoomout">\uf532</span>
       <span class="kanvas-separator"> | </span>
       <span class="kanvas-text" id="${this.k.containerId}-size"></span>
       <span class="kanvas-separator"> | </span>

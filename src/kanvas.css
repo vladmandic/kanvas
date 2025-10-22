@@ -1,10 +1,17 @@
-.kanvas-wrapper { width: fit-content; height: fit-content; background-color: #222; }
+@font-face {
+  font-family: 'NotoSans';
+  src: url('/assets/notosans-nerdfont-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.kanvas-wrapper { width: fit-content; height: fit-content; background-color: #222; font-family: 'NotoSans' }
 .kanvas { width: fit-content; height: fit-content; }
 .kanvas-text { vertical-align: middle; font-size: 12px; }
 .konvajs-content { background: black;}
 .kanvas-separator { opacity: 0.5; font-size: 14px; }
 
-.kanvas-button { font-size: 12px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; }
+.kanvas-button { font-size: 16px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; }
 .kanvas-button:hover { background-color: #aaa; }
 .kanvas-button.active { background-color: #555; }
 .kanvas-button.disabled { opacity: 0.5; }
