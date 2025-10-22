@@ -4,7 +4,6 @@ import Kanvas from './Kanvas';
 export default class Paint {
   k: Kanvas;
   brushSize: number = 10;
-  brushFeather: number = 0;
   brushOpacity: number = 1;
   brushMode: string = 'source-over';
   brushColor: string = '#ffffff';
@@ -14,6 +13,7 @@ export default class Paint {
   }
 
   startPaint() {
+    this.k.stopActions();
     let isPaint = false;
     let lastLine;
 
@@ -21,17 +21,13 @@ export default class Paint {
       if (this.k.imageMode !== 'paint') return;
       isPaint = true;
       const pos = this.k.stage.getPointerPosition();
-      console.log(this.k.paint.brushMode, this.k.paint.brushColor, this.k.paint.brushSize, this.k.paint.brushFeather, this.k.paint.brushOpacity); // eslint-disable-line no-console
       lastLine = new Konva.Line({
         stroke: this.k.paint.brushColor,
-        strokeWidth: this.k.paint.brushSize,
+        strokeWidth: 2 * this.k.paint.brushSize,
         opacity: this.k.paint.brushOpacity,
         globalCompositeOperation: this.k.paint.brushMode as CanvasRenderingContext2D['globalCompositeOperation'],
         lineCap: 'round', // round cap for smoother lines
         lineJoin: 'round',
-        shadowColor: this.k.paint.brushColor,
-        shadowBlur: this.k.paint.brushFeather,
-        shadowOpacity: this.k.paint.brushOpacity,
         points: [pos.x, pos.y, pos.x, pos.y], // add point twice, so we have some drawings even on a simple click
       });
       this.k.layer.add(lastLine);
@@ -49,6 +45,12 @@ export default class Paint {
       const newPoints = lastLine.points().concat([pos.x, pos.y]);
       lastLine.points(newPoints);
     });
+  }
+
+  stopPaint() {
+    this.k.layer.find('Line').forEach((line) => line.destroy());
+    this.k.layer.find('Transformer').forEach((t) => t.destroy());
+    this.k.layer.batchDraw();
   }
 }
 

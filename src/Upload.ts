@@ -17,18 +17,29 @@ export default class Upload {
       if (!file.type.startsWith('image/')) continue;
       const url = URL.createObjectURL(file);
       const dropImage = new Image();
+      this.k.layer = this.k.selectedLayer === 'image' ? this.k.imageLayer : this.k.maskLayer;
+      this.k.group = this.k.selectedLayer === 'image' ? this.k.imageGroup : this.k.maskGroup;
       dropImage.onload = () => { // eslint-disable-line no-loop-func
         if (!this.k.stage) return;
-        const image = new Konva.Image({ image: dropImage, x: dropX, y: dropY, draggable: false });
-        this.k.helpers.showMessage(`loaded image: ${file.name} width=${image.width()} height=${image.height()}`);
+        const image = new Konva.Image({
+          image: dropImage,
+          x: dropX,
+          y: dropY,
+          draggable: false,
+          opacity: this.k.opacity,
+        });
+        this.k.helpers.showMessage(`loaded ${this.k.selectedLayer}: ${file.name} width=${image.width()} height=${image.height()}`);
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });
           this.k.resize.resizeStage(image);
         }
         this.k.group.add(image);
-        // const transformer = new Konva.Transformer({ nodes: [image] });
-        // this.k.layer.add(transformer);
+        if (this.k.selectedLayer === 'mask') {
+          image.cache();
+          image.filters([Konva.Filters.Grayscale]);
+          image.opacity(0.5);
+        }
         image.on('transform', () => this.k.resize.resizeStage(image));
         image.on('dragmove', () => this.k.resize.resizeStage(image));
         image.on('click', () => this.k.selectNode(image));

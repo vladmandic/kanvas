@@ -13,13 +13,18 @@ export default class Kanvas {
   container: HTMLElement;
   // konva objects
   stage: Konva.Stage;
-  layer: Konva.Layer;
-  group: Konva.Group;
+  imageLayer: Konva.Layer;
+  maskLayer: Konva.Layer;
+  layer: Konva.Layer; // meta
+  group: Konva.Group; // meta
+  imageGroup: Konva.Group;
+  maskGroup: Konva.Group;
   selected: Konva.Node;
   // modes
   selectedLayer: 'image' | 'mask' = 'image';
   imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' = 'upload';
-  cropMode: 'crop' | 'resize' = 'crop';
+  // variables
+  opacity: number = 1;
   // class extensions
   toolbar: Toolbar;
   helpers: Helpers;
@@ -28,6 +33,20 @@ export default class Kanvas {
   paint: Paint;
   filter: Filter;
 
+  initImage() {
+    this.imageLayer = new Konva.Layer();
+    this.imageGroup = new Konva.Group();
+    this.imageLayer.add(this.imageGroup);
+    return this.imageLayer;
+  }
+
+  initMask() {
+    this.maskLayer = new Konva.Layer();
+    this.maskGroup = new Konva.Group();
+    this.maskLayer.add(this.maskGroup);
+    return this.maskLayer;
+  }
+
   initialize() {
     // init stage/layer/group
     this.stage = new Konva.Stage({
@@ -35,10 +54,10 @@ export default class Kanvas {
       width: 1024,
       height: 1024,
     });
-    this.layer = new Konva.Layer();
-    this.group = new Konva.Group();
-    this.layer.add(this.group);
-    this.stage.add(this.layer);
+    this.stage.add(this.initImage());
+    this.stage.add(this.initMask());
+    this.layer = this.selectedLayer === 'image' ? this.imageLayer : this.maskLayer;
+    this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
   }
 
   constructor(containerId: string) {
@@ -79,6 +98,17 @@ export default class Kanvas {
     }
     this.layer.draw();
     this.helpers.showMessage('node removed');
+  }
+
+  stopActions() {
+    this.resize.stopClip();
+    this.resize.stopResize();
+    this.paint.stopPaint();
+    /*
+    const shapes = this.k.stage.find('Shape');
+    for (const shape of shapes) {
+    }
+    */
   }
 }
 

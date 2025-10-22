@@ -7,7 +7,8 @@ export default class Helpers {
   }
 
   isEmpty() {
-    return !this.k.stage || !this.k.layer || !this.k.group || !this.k.stage.hasChildren() || this.k.group.getChildren().length === 0;
+    const groups = this.k.imageGroup.getChildren().length + this.k.maskGroup.getChildren().length;
+    return groups === 0;
   }
 
   async showMessage(msg: string, duration = 2000) {

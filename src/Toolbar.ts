@@ -10,15 +10,17 @@ export default class Toolbar {
       <span class="kanvas-button" title="select mask layer" id="${this.k.containerId}-button-mask">mask</span>
       <span class="kanvas-separator"> | </span>
       <span class="kanvas-button" title="upload image" id="${this.k.containerId}-button-upload">upload</span>
-      <span class="kanvas-button" title="remove image" id="${this.k.containerId}-button-remove">remove</span>
       <span class="kanvas-button" title="reset stage" id="${this.k.containerId}-button-reset">reset</span>
+      <span class="kanvas-button" id="${this.k.containerId}-image-controls">
+        <input type="range" id="${this.k.containerId}-image-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="image opacity" />
+      </span>
       <span class="kanvas-separator"> | </span>
+      <span class="kanvas-button" title="remove image" id="${this.k.containerId}-button-remove">remove</span>
       <span class="kanvas-button" title="resize image" id="${this.k.containerId}-button-resize">resize</span>
-      <span class="kanvas-button disabled" title="crop image" id="${this.k.containerId}-button-crop">crop</span>
+      <span class="kanvas-button" title="crop image" id="${this.k.containerId}-button-crop">crop</span>
       <span class="kanvas-button" title="paint controls" id="${this.k.containerId}-button-paint">paint</span>
-      <span class="kanvas-paint-controls" id="${this.k.containerId}-paint-controls" style="display: none;">
+      <span class="kanvas-button" id="${this.k.containerId}-paint-controls" style="display: none;">
         <input type="range" id="${this.k.containerId}-brush-size" class="kanvas-slider" min="1" max="100" step="1" value="10" title="brush size" />
-        <input type="range" id="${this.k.containerId}-brush-feather" class="kanvas-slider" min="0" max="100" step="1" value="0" title="brush feather" />
         <input type="range" id="${this.k.containerId}-brush-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="brush opacity" />
         <select id="${this.k.containerId}-brush-mode" class="kanvas-select" title="brush mode">
           <option value="source-over">source-over</option>
@@ -83,11 +85,21 @@ export default class Toolbar {
       this.k.selectedLayer = 'image';
       document.getElementById(`${this.k.containerId}-button-image`).classList.add('active');
       document.getElementById(`${this.k.containerId}-button-mask`).classList.remove('active');
+      this.k.helpers.showMessage('active: image layer');
     });
     document.getElementById(`${this.k.containerId}-button-mask`).addEventListener('click', async () => {
       this.k.selectedLayer = 'mask';
       document.getElementById(`${this.k.containerId}-button-image`).classList.remove('active');
       document.getElementById(`${this.k.containerId}-button-mask`).classList.add('active');
+      this.k.helpers.showMessage('active: mask layer');
+    });
+    document.getElementById(`${this.k.containerId}-image-opacity`).addEventListener('input', async (e) => {
+      const value = parseFloat((e.target as HTMLInputElement).value);
+      this.k.opacity = value;
+      if (this.k.selected) {
+        this.k.selected.opacity(value);
+        this.k.stage.batchDraw();
+      }
     });
 
     // group: upload,remove,reset
@@ -115,21 +127,20 @@ export default class Toolbar {
     document.getElementById(`${this.k.containerId}-button-resize`).addEventListener('click', async () => {
       this.k.imageMode = 'resize';
       this.k.helpers.showMessage('image mode: resize');
-      this.k.resize.resizeNodes(true);
+      this.k.resize.startResize();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-resize`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-button-crop`).addEventListener('click', async () => {
       this.k.imageMode = 'crop';
       this.k.helpers.showMessage('image mode: crop');
-      this.k.resize.resizeNodes(false);
+      this.k.resize.startClip();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-crop`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-button-text`).addEventListener('click', async () => {
       this.k.imageMode = 'text';
       this.k.helpers.showMessage('image mode: text');
-      this.k.resize.resizeNodes(false);
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-text`).classList.add('active');
     });
@@ -139,13 +150,11 @@ export default class Toolbar {
       this.k.imageMode = 'paint';
       this.k.helpers.showMessage('image mode: paint');
       this.k.paint.startPaint();
-      this.k.resize.resizeNodes(false);
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-paint`).classList.add('active');
       document.getElementById(`${this.k.containerId}-paint-controls`).style.display = 'inline';
     });
     document.getElementById(`${this.k.containerId}-brush-size`).addEventListener('input', async (e) => { this.k.paint.brushSize = parseInt((e.target as HTMLInputElement).value, 10); });
-    document.getElementById(`${this.k.containerId}-brush-feather`).addEventListener('input', async (e) => { this.k.paint.brushFeather = parseInt((e.target as HTMLInputElement).value, 10); });
     document.getElementById(`${this.k.containerId}-brush-opacity`).addEventListener('input', async (e) => { this.k.paint.brushOpacity = parseFloat((e.target as HTMLInputElement).value); });
     document.getElementById(`${this.k.containerId}-brush-mode`).addEventListener('input', async (e) => { this.k.paint.brushMode = (e.target as HTMLSelectElement).value; });
     document.getElementById(`${this.k.containerId}-brush-color`).addEventListener('input', async (e) => { this.k.paint.brushColor = (e.target as HTMLInputElement).value; });
@@ -154,7 +163,7 @@ export default class Toolbar {
     document.getElementById(`${this.k.containerId}-button-filters`).addEventListener('click', async () => {
       this.k.imageMode = 'filters';
       this.k.helpers.showMessage('image mode: filters');
-      this.k.resize.resizeNodes(false);
+      this.k.stopActions();
       if (document.getElementById(`${this.k.containerId}-button-filters`).classList.contains('active')) this.k.filter.applyFilter();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-filters`).classList.add('active');

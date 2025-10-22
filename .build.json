@@ -23,8 +23,8 @@
     "httpPort": 8000,
     "httpsPort": 8001,
     "documentRoot": ".",
-    "defaultFolder": ".",
-    "defaultFile": "index.html"
+    "defaultFolder": "",
+    "defaultFile": "kanvas.html"
     },
   "build": {
     "global": {
