@@ -1,43 +1,34 @@
 import Konva from 'konva';
 import Helpers from './Helpers';
+import Toolbar from './Toolbar';
 import Upload from './Upload';
 import Resize from './Resize';
 import Paint from './Paint';
+import Filter from './Filters';
 
 export default class Kanvas {
+  // elements
   containerId: string;
   wrapper: HTMLElement;
   container: HTMLElement;
+  // konva objects
   stage: Konva.Stage;
   layer: Konva.Layer;
   group: Konva.Group;
   selected: Konva.Node;
   // modes
-  paintMove: 'paint' | 'move' = 'move';
-  imageMode: 'mask' | 'image' = 'image';
+  selectedLayer: 'image' | 'mask' = 'image';
+  imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' = 'upload';
   cropMode: 'crop' | 'resize' = 'crop';
   // class extensions
+  toolbar: Toolbar;
   helpers: Helpers;
   upload: Upload;
   resize: Resize;
   paint: Paint;
+  filter: Filter;
 
-  constructor(containerId: string) {
-    this.containerId = containerId;
-    this.wrapper = document.getElementById(containerId);
-    this.wrapper.className = 'kanvas-wrapper';
-    this.wrapper.innerHTML = `
-      <div id="${this.containerId}-toolbar">
-        <toggle-switch id="${this.containerId}-toggle-image-mask" data-on="mask" data-off="image"></toggle-switch>
-        <toggle-switch id="${this.containerId}-toggle-resize-crop" data-on="crop" data-off="resize"></toggle-switch>
-        <toggle-switch id="${this.containerId}-toggle-paint-move" data-on="paint" data-off="move" ></toggle-switch>
-        <span class="kanvas-text" id="${this.containerId}-size"></span>
-        <span class="kanvas-text" id="${this.containerId}-message"></span>
-      </div>
-      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto;"></div>
-    `;
-    this.container = document.getElementById(`${this.containerId}-kanvas`);
-
+  initialize() {
     // init stage/layer/group
     this.stage = new Konva.Stage({
       container: `${this.containerId}-kanvas`,
@@ -48,15 +39,30 @@ export default class Kanvas {
     this.group = new Konva.Group();
     this.layer.add(this.group);
     this.stage.add(this.layer);
+  }
+
+  constructor(containerId: string) {
+    this.containerId = containerId;
+    this.wrapper = document.getElementById(containerId);
+    this.wrapper.className = 'kanvas-wrapper';
+    this.wrapper.innerHTML = `
+      <div id="${this.containerId}-toolbar"></div>
+      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto;"></div>
+    `;
+    this.container = document.getElementById(`${this.containerId}-kanvas`);
+    this.initialize();
 
     // init helpers
     this.helpers = new Helpers(this);
+    this.toolbar = new Toolbar(this);
     this.resize = new Resize(this);
     this.upload = new Upload(this);
     this.paint = new Paint(this);
+    this.filter = new Filter(this);
 
     // init events
-    this.helpers.bindToggles();
+    this.helpers.bindEvents();
+    this.toolbar.bindControls();
   }
 
   async selectNode(node: Konva.Node) {
@@ -64,8 +70,19 @@ export default class Kanvas {
     const nodeType = this.selected.getClassName();
     this.helpers.showMessage(`selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
   }
+
+  async removeNode(node: Konva.Node) {
+    if (!node) return;
+    node.destroy();
+    for (const shape of this.layer.getChildren()) {
+      if (shape instanceof Konva.Transformer && shape.nodes().includes(node)) shape.destroy();
+    }
+    this.layer.draw();
+    this.helpers.showMessage('node removed');
+  }
 }
 
+// expose Kanvas globally
 declare global {
   interface Window {
     Kanvas: typeof Kanvas;

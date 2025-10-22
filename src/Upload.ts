@@ -11,15 +11,15 @@ export default class Upload {
     e.preventDefault();
     const files = Array.from(e.dataTransfer?.files || e.target?.files || []);
     const rect = this.k.stage.container().getBoundingClientRect();
-    const dropX = this.k.helpers.isEmpty() ? 0 : e.clientX - rect.left;
-    const dropY = this.k.helpers.isEmpty() ? 0 : e.clientY - rect.top;
+    const dropX = this.k.helpers.isEmpty() ? 0 : (e.clientX || 0) - rect.left;
+    const dropY = this.k.helpers.isEmpty() ? 0 : (e.clientY || 0) - rect.top;
     for (const file of files as File[]) {
       if (!file.type.startsWith('image/')) continue;
       const url = URL.createObjectURL(file);
       const dropImage = new Image();
       dropImage.onload = () => { // eslint-disable-line no-loop-func
         if (!this.k.stage) return;
-        const image = new Konva.Image({ image: dropImage, x: dropX, y: dropY, draggable: true });
+        const image = new Konva.Image({ image: dropImage, x: dropX, y: dropY, draggable: false });
         this.k.helpers.showMessage(`loaded image: ${file.name} width=${image.width()} height=${image.height()}`);
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
@@ -27,9 +27,8 @@ export default class Upload {
           this.k.resize.resizeStage(image);
         }
         this.k.group.add(image);
-        const transformer = new Konva.Transformer({ nodes: [image] });
-        // const transformer = new Konva.Transformer();
-        this.k.layer.add(transformer);
+        // const transformer = new Konva.Transformer({ nodes: [image] });
+        // this.k.layer.add(transformer);
         image.on('transform', () => this.k.resize.resizeStage(image));
         image.on('dragmove', () => this.k.resize.resizeStage(image));
         image.on('click', () => this.k.selectNode(image));
@@ -41,8 +40,8 @@ export default class Upload {
     }
   }
 
-  async uploadFile() {
-    if (!this.k.helpers.isEmpty()) return;
+  async uploadFile(checkEmpty: boolean = true) {
+    if (checkEmpty && !this.k.helpers.isEmpty()) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';

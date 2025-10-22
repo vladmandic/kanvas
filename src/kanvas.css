@@ -1,19 +1,22 @@
-.kanvas-wrapper {
-  width: fit-content;
-  height: fit-content;
-  background-color: #222;
-}
+.kanvas-wrapper { width: fit-content; height: fit-content; background-color: #222; }
+.kanvas { width: fit-content; height: fit-content; }
+.kanvas-text { vertical-align: middle; font-size: 12px; }
+.konvajs-content { background: black;}
+.kanvas-separator { opacity: 0.5; font-size: 14px; }
 
-.kanvas {
-  width: fit-content;
-  height: fit-content;
-}
+.kanvas-button { font-size: 12px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; }
+.kanvas-button:hover { background-color: #aaa; }
+.kanvas-button.active { background-color: #555; }
+.kanvas-button.disabled { opacity: 0.5; }
+.kanvas-button.disabled:hover { opacity: 0.5; background-color: transparent; }
 
-.kanvas-text {
-    vertical-align: middle;
-    font-size: 12px;
-}
+.kanvas-paint-controls { display: flex; align-items: center; vertical-align: top; }
 
-.konvajs-content {
-  background: black;
-}
+.kanvas-slider { width: 60px; }
+
+.kanvas-select { background: transparent;color: #aaa;border: none; }
+.kanvas-select option { background: #222; color: #ddd; border: none;}
+.kanvas-select:hover { background-color: #555; }
+.kanvas-select:focus { outline: none; border: none; box-shadow: none; }
+
+.kanvas-colorpicker { width: 32px; border: none; padding: 0; margin: 0; cursor: pointer; background: unset; }

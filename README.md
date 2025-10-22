@@ -13,13 +13,13 @@
 - move/resize/rotate image
 - expand stage: drag or resize image outside of the stage
 - compress stage: double click on empty area
+- image filters: ...
+- draw brush: size/color/opacity/mode
+- zoom in/out: mouse-wheel or buttons
 
 ## TODO
-- reset stage
-- stage scale
 - upload/select mask
-- image: crop
-- image: filters
-- image: remove
-- draw: brush, opacity, color, feather, erase
 - draw: text
+- image: crop
+- draw: feather mode
+- outpaint: ...

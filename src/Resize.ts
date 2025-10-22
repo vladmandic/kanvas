@@ -26,7 +26,20 @@ export default class Resize {
     if (width !== this.k.stage.width() || height !== this.k.stage.height()) {
       this.k.layer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `${Math.round(this.k.stage.width())} x ${Math.round(this.k.stage.height())}`;
+      if (sizeEl) sizeEl.textContent = `${Math.round(this.k.stage.width() / this.k.stage.scaleX())} x ${Math.round(this.k.stage.height() / this.k.stage.scaleY())}`;
+    }
+  }
+
+  async resizeNodes(allow: boolean = false) {
+    for (const shape of this.k.layer.getChildren()) {
+      if (shape instanceof Konva.Transformer) shape.destroy();
+    }
+    for (const shape of this.k.group.getChildren()) {
+      shape.draggable(allow);
+      if (allow) {
+        const transformer = new Konva.Transformer({ nodes: [shape] });
+        this.k.layer.add(transformer);
+      }
     }
   }
 }
