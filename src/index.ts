@@ -1,2 +1,1 @@
 import './Kanvas';
-import './ToggleSwitch';

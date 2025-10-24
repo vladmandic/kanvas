@@ -7,16 +7,17 @@ export default class Helpers {
   }
 
   isEmpty() {
-    const groups = this.k.imageGroup.getChildren().length + this.k.maskGroup.getChildren().length;
-    return groups === 0;
+    // const groups = this.k.imageGroup.getChildren().length + this.k.maskGroup.getChildren().length;
+    const images = this.k.stage.find('Image');
+    return images.length === 0;
   }
 
   async showMessage(msg: string, duration = 2000) {
     console.log(msg); // eslint-disable-line no-console
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
     if (!msgEl) return;
-    msgEl.textContent = msg;
-    setTimeout(() => { msgEl.textContent = ''; }, duration);
+    msgEl.innerHTML = '<span class="kanvas-separator"> | </span>' + msg;
+    setTimeout(() => { msgEl.innerHTML = ''; }, duration);
   }
 
   async bindEvents() {

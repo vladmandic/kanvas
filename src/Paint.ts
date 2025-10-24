@@ -7,6 +7,10 @@ export default class Paint {
   brushOpacity: number = 1;
   brushMode: string = 'source-over';
   brushColor: string = '#ffffff';
+  outpaintBlur: number = 0.1;
+  outpaintExpand: number = -15;
+  textFont: string = 'Calibri';
+  textValue: string = 'Hello World';
 
   constructor(k: Kanvas) {
     this.k = k;
@@ -52,31 +56,83 @@ export default class Paint {
     this.k.layer.find('Transformer').forEach((t) => t.destroy());
     this.k.layer.batchDraw();
   }
+
+  startOutpaint() {
+    this.k.stopActions();
+    this.k.imageMode = 'outpaint';
+    this.k.helpers.showMessage(`Image mode=outpaint blur=${this.k.paint.outpaintBlur} expand=${this.k.paint.outpaintExpand}`);
+    const fillRect = new Konva.Rect({
+      x: 0,
+      y: 0,
+      width: this.k.stage.width(),
+      height: this.k.stage.height(),
+      fill: 'white',
+      // opacity: 0.5,
+    });
+    this.k.maskGroup.add(fillRect);
+    const images = this.k.stage.find('Image');
+    for (const image of images) {
+      const imageRect = new Konva.Rect({
+        x: image.x() - (this.outpaintExpand / 2),
+        y: image.y() - (this.outpaintExpand / 2),
+        width: (image.width() * image.scaleX()) + (this.outpaintExpand),
+        height: (image.height() * image.scaleY()) + (this.outpaintExpand),
+        fill: 'black',
+        globalCompositeOperation: 'destination-out', // punch hole
+      });
+      this.k.maskGroup.add(imageRect);
+    }
+    this.k.maskGroup.cache();
+    this.k.maskGroup.filters([Konva.Filters.Blur]);
+    this.k.maskGroup.blurRadius(this.outpaintBlur * 100);
+    this.k.layer.batchDraw();
+  }
+
+  stopOutpaint() {
+    this.k.layer.batchDraw();
+  }
+
+  startText() {
+    this.k.stopActions();
+    let isText = true;
+    let pos0: Konva.Vector2d;
+    let pos1: Konva.Vector2d;
+    this.k.stage.on('mousedown touchstart', () => {
+      if (!isText) return;
+      pos0 = this.k.stage.getPointerPosition();
+      pos1 = null;
+    });
+    this.k.stage.on('mouseup touchend', () => {
+      if (!isText) return;
+      pos1 = this.k.stage.getPointerPosition();
+      this.k.toolbar.resetButtons();
+      let fontSize = 4;
+      while (true) { // eslint-disable-line no-constant-condition
+        const text = new Konva.Text({
+          x: pos0.x,
+          y: pos0.y,
+          width: pos1.x - pos0.x,
+          height: pos1.y - pos0.y,
+          text: this.k.paint.textValue,
+          fontSize,
+          fontFamily: this.k.paint.textFont,
+          fill: this.k.paint.brushColor,
+          wrap: 'word',
+          opacity: this.k.paint.brushOpacity,
+          globalCompositeOperation: this.k.paint.brushMode as CanvasRenderingContext2D['globalCompositeOperation'],
+          draggable: true,
+        });
+        const textSize = text.measureSize(this.k.paint.textValue);
+        if (textSize.height > (pos1.y - pos0.y) || textSize.width > (pos1.x - pos0.x)) {
+          this.k.group.add(text);
+          break;
+        } else {
+          text.destroy();
+        }
+        fontSize += 2;
+      }
+      this.k.layer.batchDraw();
+      isText = false;
+    });
+  }
 }
-
-/*
-// create tool select
-const select = document.createElement('select');
-select.innerHTML = `
-  <option value="brush">Brush</option>
-  <option value="eraser">Eraser</option>
-`;
-document.body.appendChild(select);
-
-const width = window.innerWidth;
-const height = window.innerHeight - 25;
-
-// first we need Konva core things: stage and layer
-const stage = new Konva.Stage({
-  container: 'container',
-  width: width,
-  height: height,
-});
-
-const layer = new Konva.Layer();
-stage.add(layer);
-
-select.addEventListener('change', function () {
-  mode = select.value;
-});
-*/

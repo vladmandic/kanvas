@@ -7,11 +7,11 @@
 
 .kanvas-wrapper { width: fit-content; height: fit-content; background-color: #222; font-family: 'NotoSans' }
 .kanvas { width: fit-content; height: fit-content; }
-.kanvas-text { vertical-align: middle; font-size: 12px; }
+.kanvas-text { font-size: 12px; }
 .konvajs-content { background: black;}
-.kanvas-separator { opacity: 0.5; font-size: 14px; }
+.kanvas-separator { opacity: 0.3; font-size: 16px; position: relative; vertical-align: top; line-height: 28px; }
 
-.kanvas-button { font-size: 16px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; }
+.kanvas-button { font-size: 16px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; text-shadow: 2px 2px 2px #555; }
 .kanvas-button:hover { background-color: #aaa; }
 .kanvas-button.active { background-color: #555; }
 .kanvas-button.disabled { opacity: 0.5; }
@@ -19,7 +19,7 @@
 
 .kanvas-paint-controls { display: flex; align-items: center; vertical-align: top; }
 
-.kanvas-slider { width: 60px; vertical-align: sub; }
+.kanvas-slider { width: 60px; vertical-align: baseline; margin: 0; height: 13px; }
 
 .kanvas-select { background: transparent;color: #aaa;border: none; }
 .kanvas-select option { background: #222; color: #ddd; border: none;}
@@ -27,3 +27,6 @@
 .kanvas-select:focus { outline: none; border: none; box-shadow: none; }
 
 .kanvas-colorpicker { width: 32px; border: none; padding: 0; margin: 0; cursor: pointer; background: unset; vertical-align: sub; }
+
+.kanvas-textbox { border: none; background: #ddd; width: 100px; }
+.kanvas-textbox:focus { outline: none; border: none; box-shadow: none; }

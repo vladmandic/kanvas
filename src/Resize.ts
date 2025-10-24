@@ -18,11 +18,11 @@ export default class Resize {
       if (box.width < width) this.k.stage.width(box.width);
       if (box.height < height) this.k.stage.height(box.height);
       for (const child of el.getChildren()) child.setPosition({ x: 0, y: 0 });
-      this.k.helpers.showMessage(`resize group: x=${Math.round(box.x)} y=${Math.round(box.y)} width=${Math.round(box.width)} height=${Math.round(box.height)}`);
+      this.k.helpers.showMessage(`Resize group: x=${Math.round(box.x)} y=${Math.round(box.y)} width=${Math.round(box.width)} height=${Math.round(box.height)}`);
     } else {
       if (box.x + box.width > this.k.stage.width()) this.k.stage.width(box.x + box.width);
       if (box.y + box.height > this.k.stage.height()) this.k.stage.height(box.y + box.height);
-      this.k.helpers.showMessage(`resize image: x=${Math.round(box.x)} y=${Math.round(box.y)} width=${Math.round(box.width)} height=${Math.round(box.height)}`);
+      this.k.helpers.showMessage(`Resize image: x=${Math.round(box.x)} y=${Math.round(box.y)} width=${Math.round(box.width)} height=${Math.round(box.height)}`);
     }
     if (width !== this.k.stage.width() || height !== this.k.stage.height()) {
       this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
@@ -37,7 +37,16 @@ export default class Resize {
     const images = this.k.stage.find('Image');
     images.forEach((image) => {
       image.draggable(true);
-      const transformer = new Konva.Transformer({ nodes: [image] });
+      const transformer = new Konva.Transformer({
+        nodes: [image],
+        borderStroke: '#298',
+        borderStrokeWidth: 3,
+        anchorFill: '#298',
+        anchorStroke: '#298',
+        anchorStrokeWidth: 2,
+        anchorSize: 10,
+        anchorCornerRadius: 2,
+      });
       this.k.layer.add(transformer);
       image.on('transform', () => this.resizeStage(image as Konva.Image));
       image.on('dragmove', () => this.resizeStage(image as Konva.Image));
@@ -65,9 +74,26 @@ export default class Resize {
   startClip() {
     this.k.stopActions();
     const box = this.k.group.getClientRect();
-    this.clipBox = new Konva.Rect({ x: box.x, y: box.y, width: box.width, height: box.height, stroke: 'darkred', draggable: true });
+    this.clipBox = new Konva.Rect({
+      x: box.x,
+      y: box.y,
+      width: box.width,
+      height: box.height,
+      stroke: '#923',
+      draggable: true,
+    });
     this.k.group.add(this.clipBox);
-    const clipTransformer = new Konva.Transformer({ nodes: [this.clipBox], rotateEnabled: false });
+    const clipTransformer = new Konva.Transformer({
+      nodes: [this.clipBox],
+      rotateEnabled: false,
+      borderStroke: '#923',
+      borderStrokeWidth: 3,
+      anchorFill: '#923',
+      anchorStroke: '#923',
+      anchorStrokeWidth: 2,
+      anchorSize: 10,
+      anchorCornerRadius: 2,
+    });
     this.k.layer.add(clipTransformer);
     this.clipBox.on('transformend dragend', () => this.applyClip(this.clipBox));
   }

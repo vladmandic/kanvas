@@ -22,7 +22,7 @@ export default class Kanvas {
   selected: Konva.Node;
   // modes
   selectedLayer: 'image' | 'mask' = 'image';
-  imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' = 'upload';
+  imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' | 'outpaint' = 'upload';
   // variables
   opacity: number = 1;
   // class extensions
@@ -87,23 +87,25 @@ export default class Kanvas {
   async selectNode(node: Konva.Node) {
     this.selected = node;
     const nodeType = this.selected.getClassName();
-    this.helpers.showMessage(`selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
+    this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
   }
 
   async removeNode(node: Konva.Node) {
     if (!node) return;
+    const nodeType = node.getClassName();
     node.destroy();
     for (const shape of this.layer.getChildren()) {
       if (shape instanceof Konva.Transformer && shape.nodes().includes(node)) shape.destroy();
     }
     this.layer.draw();
-    this.helpers.showMessage('node removed');
+    this.helpers.showMessage(`Node removed: ${nodeType}`);
   }
 
   stopActions() {
     this.resize.stopClip();
     this.resize.stopResize();
     this.paint.stopPaint();
+    this.paint.stopOutpaint();
     /*
     const shapes = this.k.stage.find('Shape');
     for (const shape of shapes) {

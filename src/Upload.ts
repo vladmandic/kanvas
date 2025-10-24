@@ -28,7 +28,7 @@ export default class Upload {
           draggable: false,
           opacity: this.k.opacity,
         });
-        this.k.helpers.showMessage(`loaded ${this.k.selectedLayer}: ${file.name} width=${image.width()} height=${image.height()}`);
+        this.k.helpers.showMessage(`Loaded ${this.k.selectedLayer}: ${file.name} width=${image.width()} height=${image.height()}`);
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });
@@ -59,5 +59,13 @@ export default class Upload {
     input.multiple = true;
     input.onchange = async (e) => this.uploadImage(e);
     input.click();
+  }
+
+  async updateOpacity(opacity: number) {
+    this.k.opacity = opacity;
+    if (this.k.selected && this.k.selected instanceof Konva.Image) {
+      this.k.selected.opacity(opacity);
+      this.k.layer.batchDraw();
+    }
   }
 }
