@@ -58,6 +58,7 @@ export default class Kanvas {
     this.stage.add(this.initMask());
     this.layer = this.selectedLayer === 'image' ? this.imageLayer : this.maskLayer;
     this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
+    console.log(`Kanvas: konva=${Konva.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`); // eslint-disable-line no-console
   }
 
   constructor(containerId: string) {
