@@ -9,6 +9,8 @@ export default class Upload {
 
   async uploadImage(e) {
     e.preventDefault();
+    this.k.stopActions();
+    this.k.toolbar.resetButtons();
     const files = Array.from(e.dataTransfer?.files || e.target?.files || []);
     const rect = this.k.stage.container().getBoundingClientRect();
     const dropX = this.k.helpers.isEmpty() ? 0 : (e.clientX || 0) - rect.left;
