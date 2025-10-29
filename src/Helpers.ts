@@ -12,12 +12,17 @@ export default class Helpers {
     return images.length === 0;
   }
 
-  async showMessage(msg: string, duration = 2000) {
+  async showMessage(msg: string, duration = 3000) {
     console.log(msg); // eslint-disable-line no-console
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
     if (!msgEl) return;
+    msgEl.classList.remove('fade-out');
     msgEl.innerHTML = '<span class="kanvas-separator"> | </span>' + msg;
-    setTimeout(() => { msgEl.innerHTML = ''; }, duration);
+    msgEl.classList.add('active');
+    setTimeout(() => {
+      msgEl.classList.remove('active');
+      msgEl.innerHTML = '';
+    }, duration);
   }
 
   async bindEvents() {

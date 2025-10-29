@@ -5,28 +5,49 @@
   font-style: normal;
 }
 
-.kanvas-wrapper { width: fit-content; height: fit-content; background-color: #222; font-family: 'NotoSans' }
-.kanvas { width: fit-content; height: fit-content; }
-.kanvas-text { font-size: 12px; }
-.konvajs-content { background: black;}
-.kanvas-separator { opacity: 0.3; font-size: 16px; position: relative; vertical-align: top; line-height: 28px; }
+:root {
+  --kanvas-size: 16px;
+  --kanvas-color: 190;
+}
 
-.kanvas-button { font-size: 16px; color: #ddd; padding: 6px; line-height: 32px; border-radius: 4px; cursor: pointer; user-select: none; text-shadow: 2px 2px 2px #555; }
-.kanvas-button:hover { background-color: #aaa; }
-.kanvas-button.active { background-color: #555; }
+.kanvas { width: fit-content; height: fit-content; }
+.kanvas-wrapper { width: fit-content; height: fit-content; background-color: hsl(var(--kanvas-color), 0%, 10%);; font-family: 'NotoSans' }
+.kanvas-toolbar { font-size: var(--kanvas-size); line-height: calc(2 * var(--kanvas-size)); vertical-align: middle; max-height: 2em; }
+.kanvas-toolbar span { filter: drop-shadow(2px 2px 2px hsl(var(--kanvas-color), 50%, 0%)); }
+.konvajs-content { background: black;}
+.kanvas-separator { opacity: 0.3; font-size: 1.1em; position: relative; vertical-align: top; line-height: 1.6em; margin-right: -4px; }
+
+.kanvas-section { display: none; opacity: 0.0; }
+.kanvas-section.active { display: inline; opacity: 1.0; animation: fade-in 0.5s ease-in forwards; }
+
+.kanvas-button { color: hsl(var(--kanvas-color), 0%, 95%); padding: 0.3em 0.3em 0.3em 0.4em; border-radius: 4px; cursor: pointer; user-select: none; transition: background-color 0.3s ease; margin-right: -4px; letter-spacing: 2px; }
+.kanvas-button:hover { background-color: hsl(var(--kanvas-color), 50%, 40%); }
+.kanvas-button.active { background-color: hsl(var(--kanvas-color), 50%, 20%); }
 .kanvas-button.disabled { opacity: 0.5; }
 .kanvas-button.disabled:hover { opacity: 0.5; background-color: transparent; }
 
 .kanvas-paint-controls { display: flex; align-items: center; vertical-align: top; }
 
-.kanvas-slider { width: 60px; vertical-align: baseline; margin: 0; height: 13px; }
+.kanvas-slider { padding: 0; margin-top: calc(var(--kanvas-size)/-6); width: calc(4 * var(--kanvas-size)); height: calc(0.8*var(--kanvas-size)); background-color: hsl(var(--kanvas-color), 0%, 25%); ; overflow: hidden; cursor: pointer; -webkit-appearance: none; appearance: none; border-radius: 4px; vertical-align: middle; }
+.kanvas-slider::-webkit-slider-thumb { height: calc(0.8*var(--kanvas-size)); width: calc(0.8*var(--kanvas-size)); background-color: hsl(180, 54%, 61%); border-radius: 4px; }
+.kanvas-slider::-webkit-slider-runnable-track, input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; }
+.kanvas-slider::-moz-range-thumb { height: calc(0.8*var(--kanvas-size)); width: calc(0.8*var(--kanvas-size)); background-color: hsl(180, 54%, 61%); }
+.kanvas-slider::-moz-range-track, input[type='range']::-webkit-slider-runnable-track { border: none; background: none; width: 100%; height: 100%; }
 
-.kanvas-select { background: transparent;color: #aaa;border: none; }
-.kanvas-select option { background: #222; color: #ddd; border: none;}
-.kanvas-select:hover { background-color: #555; }
+.kanvas-select { background: transparent; color: hsl(var(--kanvas-color), 0%, 85%); border: none; }
+.kanvas-select option { background: hsl(var(--kanvas-color), 0%, 20%); color: hsl(var(--kanvas-color), 0%, 85%); border: none; list-style: none; }
+.kanvas-select:hover { background-color: hsl(var(--kanvas-color), 50%, 50%); }
 .kanvas-select:focus { outline: none; border: none; box-shadow: none; }
 
-.kanvas-colorpicker { width: 32px; border: none; padding: 0; margin: 0; cursor: pointer; background: unset; vertical-align: sub; }
+.kanvas-colorpicker { width: calc(2 * var(--kanvas-size)); border: none; padding: 0; margin: 0; cursor: pointer; background: unset; vertical-align: middle; }
 
-.kanvas-textbox { border: none; background: #ddd; width: 100px; }
+.kanvas-textbox { border: none; background: hsl(var(--kanvas-color), 0%, 80%); width: calc(6 * var(--kanvas-size)); border-radius: 4px; }
 .kanvas-textbox:focus { outline: none; border: none; box-shadow: none; }
+
+.kanvas-text { font-size: 0.9em; }
+.kanvas-text.active { display: inline; opacity: 1.0; animation: fade-in 1.0s ease-in forwards; }
+
+@keyframes fade-in {
+  0% { opacity: 0; display: none; }
+  100% { opacity: 1; display: inline; }
+}

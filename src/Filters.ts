@@ -17,7 +17,7 @@ export default class Filter {
       this.k.helpers.showMessage(`apply filter: ${this.filterName} value=${this.filterValue}`);
       if (this.filterName === 'blur') {
         image.filters([Konva.Filters.Blur]);
-        image.blurRadius(this.filterValue);
+        image.blurRadius(this.filterValue / 4);
       }
       if (this.filterName === 'brightness') {
         image.filters([Konva.Filters.Brighten]);
@@ -47,7 +47,7 @@ export default class Filter {
       }
       if (this.filterName === 'pixelate') {
         image.filters([Konva.Filters.Pixelate]);
-        image.pixelSize(this.filterValue);
+        image.pixelSize(this.filterValue / 4);
       }
       if (this.filterName === 'threshold') {
         image.filters([Konva.Filters.Threshold]);

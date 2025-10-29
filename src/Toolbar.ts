@@ -5,6 +5,7 @@ export default class Toolbar {
   constructor(k: Kanvas) {
     this.k = k;
     const container = document.getElementById(`${this.k.containerId}-toolbar`);
+    container.classList.add('kanvas-toolbar');
     container.innerHTML = `
       <span class="kanvas-button active" title="Select image layer as active layer" id="${this.k.containerId}-button-image">\udb82\udd76</span>
       <span class="kanvas-button" title="Select mask layer as active layer" id="${this.k.containerId}-button-mask">\udb80\udee9</span>
@@ -13,7 +14,7 @@ export default class Toolbar {
       <span class="kanvas-button" title="Upload image to active layer" id="${this.k.containerId}-button-upload">\udb82\udc7c</span>
       <span class="kanvas-button" title="Remove currently selected image" id="${this.k.containerId}-button-remove">\udb85\udc18</span>
       <span class="kanvas-button" title="Reset stage" id="${this.k.containerId}-button-reset">\uf1b8</span>
-      <span id="${this.k.containerId}-image-controls">
+      <span id="${this.k.containerId}-image-controls" class="kanvas-section active">
         <input type="range" id="${this.k.containerId}-image-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Change image opacity for currently selected image" />
       </span>
 
@@ -26,7 +27,7 @@ export default class Toolbar {
       <span class="kanvas-button" title="Apply filters on currently selected image" id="${this.k.containerId}-button-filters">\udb80\udef0</span>
       <span class="kanvas-button" title="Draw text" id="${this.k.containerId}-button-text">\udb80\ude84</span>
 
-      <span id="${this.k.containerId}-paint-controls" style="display: none;">
+      <span id="${this.k.containerId}-paint-controls" class="kanvas-section">
         <span class="kanvas-separator"> | </span>
         <input type="range" id="${this.k.containerId}-brush-size" class="kanvas-slider" min="1" max="100" step="1" value="10" title="Brush size" />
         <input type="range" id="${this.k.containerId}-brush-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Brush opacity" />
@@ -48,12 +49,12 @@ export default class Toolbar {
         </select>
         <input type="color" id="${this.k.containerId}-brush-color" class="kanvas-colorpicker" value="#ffffff" title="Brush color" />
       </span>
-      <span id="${this.k.containerId}-outpaint-controls" style="display: none;">
+      <span id="${this.k.containerId}-outpaint-controls" class="kanvas-section">
         <span class="kanvas-separator"> | </span>
         <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.1" title="Outpaint edge blur" />
         <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="-100" max="100" step="1" value="-15 " title="Outpaint edge expand" />
       </span>
-      <span id="${this.k.containerId}-filter-controls" style="display: none;">
+      <span id="${this.k.containerId}-filter-controls" class="kanvas-section">
         <span class="kanvas-separator"> | </span>
         <input type="range" id="${this.k.containerId}-filter-value" class="kanvas-slider" min="0" max="100" step="1" value="10" title="Filter value" />
         <select id="${this.k.containerId}-filter-name" class="kanvas-select" title="Active image filter">
@@ -69,7 +70,7 @@ export default class Toolbar {
           <option value="threshold">threshold</option>
         </select>
       </span>
-      <span id="${this.k.containerId}-text-controls" style="display: none;">
+      <span id="${this.k.containerId}-text-controls" class="kanvas-section">
         <span class="kanvas-separator"> | </span>
         <input type="text" id="${this.k.containerId}-text-font" class="kanvas-textbox" value="Calibri" title="Text font" />
         <input type="text" id="${this.k.containerId}-text-value" class="kanvas-textbox" placeholder="enter text" title="Text value" />
@@ -91,10 +92,10 @@ export default class Toolbar {
     document.getElementById(`${this.k.containerId}-button-filters`).classList.remove('active');
     document.getElementById(`${this.k.containerId}-button-text`).classList.remove('active');
     document.getElementById(`${this.k.containerId}-button-outpaint`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-paint-controls`).style.display = 'none';
-    document.getElementById(`${this.k.containerId}-filter-controls`).style.display = 'none';
-    document.getElementById(`${this.k.containerId}-text-controls`).style.display = 'none';
-    document.getElementById(`${this.k.containerId}-outpaint-controls`).style.display = 'none';
+    document.getElementById(`${this.k.containerId}-paint-controls`).classList.remove('active');
+    document.getElementById(`${this.k.containerId}-filter-controls`).classList.remove('active');
+    document.getElementById(`${this.k.containerId}-text-controls`).classList.remove('active');
+    document.getElementById(`${this.k.containerId}-outpaint-controls`).classList.remove('active');
     this.k.imageLayer.batchDraw();
     this.k.maskLayer.batchDraw();
   }
@@ -163,7 +164,7 @@ export default class Toolbar {
       this.k.paint.startPaint();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-paint`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-paint-controls`).style.display = 'inline';
+      document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-button-text`).addEventListener('click', async () => {
       this.k.imageMode = 'text';
@@ -171,8 +172,8 @@ export default class Toolbar {
       this.k.paint.startText();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-text`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-paint-controls`).style.display = 'inline';
-      document.getElementById(`${this.k.containerId}-text-controls`).style.display = 'inline';
+      document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-text-controls`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-brush-size`).addEventListener('input', async (e) => { this.k.paint.brushSize = parseInt((e.target as HTMLInputElement).value, 10); });
     document.getElementById(`${this.k.containerId}-brush-opacity`).addEventListener('input', async (e) => { this.k.paint.brushOpacity = parseFloat((e.target as HTMLInputElement).value); });
@@ -187,7 +188,7 @@ export default class Toolbar {
       this.resetButtons();
       this.k.paint.startOutpaint();
       document.getElementById(`${this.k.containerId}-button-outpaint`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-outpaint-controls`).style.display = 'inline';
+      document.getElementById(`${this.k.containerId}-outpaint-controls`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-outpaint-expand`).addEventListener('input', async (e) => {
       this.k.paint.outpaintExpand = parseInt((e.target as HTMLInputElement).value, 10);
@@ -206,7 +207,7 @@ export default class Toolbar {
       if (document.getElementById(`${this.k.containerId}-button-filters`).classList.contains('active')) this.k.filter.applyFilter();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-filters`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-filter-controls`).style.display = 'inline';
+      document.getElementById(`${this.k.containerId}-filter-controls`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-filter-value`).addEventListener('input', async (e) => { this.k.filter.filterValue = parseInt((e.target as HTMLInputElement).value, 10); });
     document.getElementById(`${this.k.containerId}-filter-name`).addEventListener('input', async (e) => { this.k.filter.filterName = (e.target as HTMLSelectElement).value; });
