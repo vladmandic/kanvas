@@ -11,11 +11,12 @@
 }
 
 .kanvas { width: fit-content; height: fit-content; }
-.kanvas-wrapper { width: fit-content; height: fit-content; background-color: hsl(var(--kanvas-color), 0%, 10%);; font-family: 'NotoSans' }
-.kanvas-toolbar { font-size: var(--kanvas-size); line-height: calc(2 * var(--kanvas-size)); vertical-align: middle; max-height: 2em; }
+.kanvas-wrapper { width: fit-content; height: fit-content; font-family: 'NotoSans'; background-color: black; }
+.kanvas-toolbar { font-size: var(--kanvas-size); line-height: calc(2 * var(--kanvas-size)); vertical-align: middle; opacity: 0%; background-color: black; min-width: 512px; max-height: calc(2 * var(--kanvas-size)); }
+.kanvas-toolbar.active { opacity: 100%; transition: opacity,background-color 0.2s ease-in; background-color: hsl(var(--kanvas-color), 0%, 10%); }
 .kanvas-toolbar span { filter: drop-shadow(2px 2px 2px hsl(var(--kanvas-color), 50%, 0%)); }
 .konvajs-content { background: black;}
-.kanvas-separator { opacity: 0.3; font-size: 1.1em; position: relative; vertical-align: top; line-height: 1.6em; margin-right: -4px; }
+.kanvas-separator { opacity: 0.3; font-size: calc(1.1 * var(--kanvas-size)); position: relative; vertical-align: top; line-height: 1.6em; margin-right: -4px; cursor: pointer; filter: blur(1px) !important; }
 
 .kanvas-section { display: none; opacity: 0.0; }
 .kanvas-section.active { display: inline; opacity: 1.0; animation: fade-in 0.5s ease-in forwards; }
@@ -44,7 +45,7 @@
 .kanvas-textbox { border: none; background: hsl(var(--kanvas-color), 0%, 80%); width: calc(6 * var(--kanvas-size)); border-radius: 4px; }
 .kanvas-textbox:focus { outline: none; border: none; box-shadow: none; }
 
-.kanvas-text { font-size: 0.9em; }
+.kanvas-text { font-size: 0.8em; vertical-align: bottom; cursor: pointer; }
 .kanvas-text.active { display: inline; opacity: 1.0; animation: fade-in 1.0s ease-in forwards; }
 
 @keyframes fade-in {

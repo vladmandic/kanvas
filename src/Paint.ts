@@ -1,6 +1,16 @@
 import Konva from 'konva';
 import Kanvas from './Kanvas';
 
+function hexToGrayscale(hex: string) {
+  const _hex = hex.replace('#', '');
+  const r = parseInt(_hex.substring(0, 2), 16);
+  const g = parseInt(_hex.substring(2, 4), 16);
+  const b = parseInt(_hex.substring(4, 6), 16);
+  const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  const grayHex = gray.toString(16).padStart(2, '0');
+  return `#${grayHex}${grayHex}${grayHex}`;
+}
+
 export default class Paint {
   k: Kanvas;
   brushSize: number = 10;
@@ -25,8 +35,10 @@ export default class Paint {
       if (this.k.imageMode !== 'paint') return;
       isPaint = true;
       const pos = this.k.stage.getPointerPosition();
+      const brushColor = this.k.selectedLayer === 'image' ? this.k.paint.brushColor : hexToGrayscale(this.k.paint.brushColor);
+      console.log(this.k.paint.brushColor, brushColor);
       lastLine = new Konva.Line({
-        stroke: this.k.paint.brushColor,
+        stroke: brushColor,
         strokeWidth: 2 * this.k.paint.brushSize,
         opacity: this.k.paint.brushOpacity,
         globalCompositeOperation: this.k.paint.brushMode as CanvasRenderingContext2D['globalCompositeOperation'],

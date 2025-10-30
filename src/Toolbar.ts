@@ -2,11 +2,13 @@ import Kanvas from './Kanvas';
 
 export default class Toolbar {
   k: Kanvas;
+  el: HTMLElement;
   constructor(k: Kanvas) {
     this.k = k;
-    const container = document.getElementById(`${this.k.containerId}-toolbar`);
-    container.classList.add('kanvas-toolbar');
-    container.innerHTML = `
+    this.el = document.getElementById(`${this.k.containerId}-toolbar`);
+    this.el.classList.add('kanvas-toolbar');
+    this.el.classList.add('active');
+    this.el.innerHTML = `
       <span class="kanvas-button active" title="Select image layer as active layer" id="${this.k.containerId}-button-image">\udb82\udd76</span>
       <span class="kanvas-button" title="Select mask layer as active layer" id="${this.k.containerId}-button-mask">\udb80\udee9</span>
 
@@ -100,56 +102,107 @@ export default class Toolbar {
     this.k.maskLayer.batchDraw();
   }
 
+  async show() {
+    this.el.classList.add('active');
+  }
+
+  async hide() {
+    this.el.classList.remove('active');
+  }
+
   async bindControls() {
+    // toolbar
+    this.el.onclick = (e) => {
+      if (e.target === this.el) this.el.classList.toggle('active');
+    };
+    this.el.onwheel = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      let sizePx = getComputedStyle(document.documentElement).getPropertyValue('--kanvas-size');
+      let size = parseFloat(sizePx.replace('px', ''));
+      size = e.deltaY > 0 ? size * 1.05 : size / 1.05;
+      size = Math.min(Math.max(Math.round(10 * size) / 10, 10), 32);
+      sizePx = `${size}px`;
+      this.k.helpers.showMessage(`Toolbar: scale=${sizePx}`);
+      document.documentElement.style.setProperty('--kanvas-size', sizePx);
+    };
     // group: image,mask,opacity
-    document.getElementById(`${this.k.containerId}-button-image`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-image`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.selectedLayer = 'image';
       document.getElementById(`${this.k.containerId}-button-image`).classList.add('active');
       document.getElementById(`${this.k.containerId}-button-mask`).classList.remove('active');
       this.k.helpers.showMessage('Active: image layer');
     });
-    document.getElementById(`${this.k.containerId}-button-mask`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-mask`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.selectedLayer = 'mask';
       document.getElementById(`${this.k.containerId}-button-image`).classList.remove('active');
       document.getElementById(`${this.k.containerId}-button-mask`).classList.add('active');
       this.k.helpers.showMessage('Active: mask layer');
     });
-    document.getElementById(`${this.k.containerId}-image-opacity`).addEventListener('input', async (e) => this.k.upload.updateOpacity(parseFloat((e.target as HTMLInputElement).value)));
+    document.getElementById(`${this.k.containerId}-image-opacity`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.upload.updateOpacity(parseFloat((e.target as HTMLInputElement).value));
+    });
 
     // group: upload,remove,refresh,reset
-    document.getElementById(`${this.k.containerId}-button-upload`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-upload`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'upload';
       this.resetButtons();
       this.k.upload.uploadFile(false);
     });
-    document.getElementById(`${this.k.containerId}-button-remove`).addEventListener('click', async () => this.k.removeNode(this.k.selected));
-    document.getElementById(`${this.k.containerId}-button-reset`).addEventListener('click', async () => this.k.initialize());
-    document.getElementById(`${this.k.containerId}-button-refresh`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-remove`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.removeNode(this.k.selected);
+    });
+    document.getElementById(`${this.k.containerId}-button-reset`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.initialize();
+    });
+    document.getElementById(`${this.k.containerId}-button-refresh`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.stopActions();
       this.resetButtons();
     });
 
     // group: zoomin,zoomout
-    document.getElementById(`${this.k.containerId}-button-zoomin`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-zoomin`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const scale = this.k.stage.scaleX() * 1.1;
       this.k.stage.scale({ x: scale, y: scale });
       document.getElementById(`${this.k.containerId}-size`).textContent = `Scale: ${Math.round(scale * 100)}%`;
     });
-    document.getElementById(`${this.k.containerId}-button-zoomout`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-zoomout`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const scale = this.k.stage.scaleX() / 1.1;
       this.k.stage.scale({ x: scale, y: scale });
       document.getElementById(`${this.k.containerId}-size`).textContent = `Scale: ${Math.round(scale * 100)}%`;
     });
 
     // group: reize,crop
-    document.getElementById(`${this.k.containerId}-button-resize`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-resize`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'resize';
       this.k.helpers.showMessage('Image mode=resize');
       this.k.resize.startResize();
       this.resetButtons();
       document.getElementById(`${this.k.containerId}-button-resize`).classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-button-crop`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-crop`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'crop';
       this.k.helpers.showMessage('Image mode=crop');
       this.k.resize.startClip();
@@ -158,7 +211,9 @@ export default class Toolbar {
     });
 
     // group: paint,text
-    document.getElementById(`${this.k.containerId}-button-paint`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-paint`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'paint';
       this.k.helpers.showMessage('Image mode=paint');
       this.k.paint.startPaint();
@@ -166,7 +221,9 @@ export default class Toolbar {
       document.getElementById(`${this.k.containerId}-button-paint`).classList.add('active');
       document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-button-text`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-text`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'text';
       this.k.helpers.showMessage('Image mode=text');
       this.k.paint.startText();
@@ -175,15 +232,41 @@ export default class Toolbar {
       document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
       document.getElementById(`${this.k.containerId}-text-controls`).classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-brush-size`).addEventListener('input', async (e) => { this.k.paint.brushSize = parseInt((e.target as HTMLInputElement).value, 10); });
-    document.getElementById(`${this.k.containerId}-brush-opacity`).addEventListener('input', async (e) => { this.k.paint.brushOpacity = parseFloat((e.target as HTMLInputElement).value); });
-    document.getElementById(`${this.k.containerId}-brush-mode`).addEventListener('input', async (e) => { this.k.paint.brushMode = (e.target as HTMLSelectElement).value; });
-    document.getElementById(`${this.k.containerId}-brush-color`).addEventListener('input', async (e) => { this.k.paint.brushColor = (e.target as HTMLInputElement).value; });
-    document.getElementById(`${this.k.containerId}-text-font`).addEventListener('input', async (e) => { this.k.paint.textFont = (e.target as HTMLInputElement).value; });
-    document.getElementById(`${this.k.containerId}-text-value`).addEventListener('input', async (e) => { this.k.paint.textValue = (e.target as HTMLInputElement).value; });
+    document.getElementById(`${this.k.containerId}-brush-size`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.brushSize = parseInt((e.target as HTMLInputElement).value, 10);
+    });
+    document.getElementById(`${this.k.containerId}-brush-opacity`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.brushOpacity = parseFloat((e.target as HTMLInputElement).value);
+    });
+    document.getElementById(`${this.k.containerId}-brush-mode`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.brushMode = (e.target as HTMLSelectElement).value;
+    });
+    document.getElementById(`${this.k.containerId}-brush-color`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.brushColor = (e.target as HTMLInputElement).value;
+    });
+    document.getElementById(`${this.k.containerId}-text-font`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.textFont = (e.target as HTMLInputElement).value;
+    });
+    document.getElementById(`${this.k.containerId}-text-value`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.paint.textValue = (e.target as HTMLInputElement).value;
+    });
 
     // group: outpaint
-    document.getElementById(`${this.k.containerId}-button-outpaint`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-outpaint`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'outpaint';
       this.resetButtons();
       this.k.paint.startOutpaint();
@@ -191,16 +274,22 @@ export default class Toolbar {
       document.getElementById(`${this.k.containerId}-outpaint-controls`).classList.add('active');
     });
     document.getElementById(`${this.k.containerId}-outpaint-expand`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.paint.outpaintExpand = parseInt((e.target as HTMLInputElement).value, 10);
       this.k.paint.startOutpaint();
     });
     document.getElementById(`${this.k.containerId}-outpaint-blur`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.paint.outpaintBlur = parseFloat((e.target as HTMLInputElement).value);
       this.k.paint.startOutpaint();
     });
 
     // group: filters
-    document.getElementById(`${this.k.containerId}-button-filters`).addEventListener('click', async () => {
+    document.getElementById(`${this.k.containerId}-button-filters`).addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.k.imageMode = 'filters';
       this.k.helpers.showMessage('Image mode=filters');
       this.k.stopActions();
@@ -209,7 +298,15 @@ export default class Toolbar {
       document.getElementById(`${this.k.containerId}-button-filters`).classList.add('active');
       document.getElementById(`${this.k.containerId}-filter-controls`).classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-filter-value`).addEventListener('input', async (e) => { this.k.filter.filterValue = parseInt((e.target as HTMLInputElement).value, 10); });
-    document.getElementById(`${this.k.containerId}-filter-name`).addEventListener('input', async (e) => { this.k.filter.filterName = (e.target as HTMLSelectElement).value; });
+    document.getElementById(`${this.k.containerId}-filter-value`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.filter.filterValue = parseInt((e.target as HTMLInputElement).value, 10);
+    });
+    document.getElementById(`${this.k.containerId}-filter-name`).addEventListener('input', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.filter.filterName = (e.target as HTMLSelectElement).value;
+    });
   }
 }

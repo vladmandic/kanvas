@@ -12,7 +12,7 @@ export default class Helpers {
     return images.length === 0;
   }
 
-  async showMessage(msg: string, duration = 3000) {
+  async showMessage(msg: string, duration = 300000) {
     console.log(msg); // eslint-disable-line no-console
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
     if (!msgEl) return;
@@ -34,7 +34,7 @@ export default class Helpers {
       const scale = e.evt.deltaY > 0 ? this.k.stage.scaleX() / 1.05 : this.k.stage.scaleX() * 1.05;
       this.k.stage.scale({ x: scale, y: scale });
       this.k.stage.batchDraw();
-      this.showMessage(`scale: ${Math.round(scale * 100)}%`, 1000);
+      this.showMessage(`scale: ${Math.round(scale * 100)}%`);
     });
     this.k.container.addEventListener('dragover', (e) => e.preventDefault());
     this.k.container.addEventListener('dragleave', (e) => e.preventDefault());

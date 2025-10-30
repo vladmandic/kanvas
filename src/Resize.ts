@@ -27,6 +27,7 @@ export default class Resize {
     if (width !== this.k.stage.width() || height !== this.k.stage.height()) {
       this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
+      this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
       const sizeEl = document.getElementById(`${this.k.containerId}-size`);
       if (sizeEl) sizeEl.textContent = `${Math.round(this.k.stage.width() / this.k.stage.scaleX())} x ${Math.round(this.k.stage.height() / this.k.stage.scaleY())}`;
     }
