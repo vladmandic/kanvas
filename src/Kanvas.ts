@@ -52,7 +52,7 @@ export default class Kanvas {
     this.stage = new Konva.Stage({
       container: `${this.containerId}-kanvas`,
       width: 1024,
-      height: 1024,
+      height: 256,
     });
     this.stage.add(this.initImage());
     this.stage.add(this.initMask());
@@ -63,13 +63,13 @@ export default class Kanvas {
 
   constructor(containerId: string) {
     this.containerId = containerId;
-    this.wrapper = document.getElementById(containerId);
+    this.wrapper = document.getElementById(containerId) as HTMLElement;
     this.wrapper.className = 'kanvas-wrapper';
     this.wrapper.innerHTML = `
       <div id="${this.containerId}-toolbar"></div>
-      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto;"></div>
+      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto; width: 100%; height: 100%;"></div>
     `;
-    this.container = document.getElementById(`${this.containerId}-kanvas`);
+    this.container = document.getElementById(`${this.containerId}-kanvas`) as HTMLElement;
     this.initialize();
 
     // init helpers
@@ -83,6 +83,10 @@ export default class Kanvas {
     // init events
     this.helpers.bindEvents();
     this.toolbar.bindControls();
+
+    // initial size
+    const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
+    resizeObserver.observe(this.wrapper);
   }
 
   async selectNode(node: Konva.Node) {

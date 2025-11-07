@@ -36,7 +36,6 @@ export default class Paint {
       isPaint = true;
       const pos = this.k.stage.getPointerPosition();
       const brushColor = this.k.selectedLayer === 'image' ? this.k.paint.brushColor : hexToGrayscale(this.k.paint.brushColor);
-      console.log(this.k.paint.brushColor, brushColor);
       lastLine = new Konva.Line({
         stroke: brushColor,
         strokeWidth: 2 * this.k.paint.brushSize,

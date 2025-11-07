@@ -5,7 +5,7 @@ export default class Toolbar {
   el: HTMLElement;
   constructor(k: Kanvas) {
     this.k = k;
-    this.el = document.getElementById(`${this.k.containerId}-toolbar`);
+    this.el = document.getElementById(`${this.k.containerId}-toolbar`) as HTMLElement;
     this.el.classList.add('kanvas-toolbar');
     this.el.classList.add('active');
     this.el.innerHTML = `
@@ -80,6 +80,7 @@ export default class Toolbar {
 
       <span class="kanvas-separator"> | </span>
       <span class="kanvas-button" title="Zoom in" id="${this.k.containerId}-button-zoomin">\uf531</span>
+      <span class="kanvas-button" title="Zoom lock" id="${this.k.containerId}-button-zoomlock">\udb84\ude76</span>
       <span class="kanvas-button" title="Zoom out" id="${this.k.containerId}-button-zoomout">\uf532</span>
       <span class="kanvas-separator"> | </span>
       <span class="kanvas-text" id="${this.k.containerId}-size"></span>
@@ -88,16 +89,16 @@ export default class Toolbar {
   }
 
   async resetButtons() {
-    document.getElementById(`${this.k.containerId}-button-resize`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-button-crop`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-button-paint`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-button-filters`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-button-text`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-button-outpaint`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-paint-controls`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-filter-controls`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-text-controls`).classList.remove('active');
-    document.getElementById(`${this.k.containerId}-outpaint-controls`).classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-resize`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-crop`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-paint`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-filters`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-text`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-paint-controls`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-filter-controls`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-text-controls`)?.classList.remove('active');
+    document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.remove('active');
     this.k.imageLayer.batchDraw();
     this.k.maskLayer.batchDraw();
   }
@@ -127,47 +128,47 @@ export default class Toolbar {
       document.documentElement.style.setProperty('--kanvas-size', sizePx);
     };
     // group: image,mask,opacity
-    document.getElementById(`${this.k.containerId}-button-image`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-image`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.selectedLayer = 'image';
-      document.getElementById(`${this.k.containerId}-button-image`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-button-mask`).classList.remove('active');
+      document.getElementById(`${this.k.containerId}-button-image`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-mask`)?.classList.remove('active');
       this.k.helpers.showMessage('Active: image layer');
     });
-    document.getElementById(`${this.k.containerId}-button-mask`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-mask`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.selectedLayer = 'mask';
-      document.getElementById(`${this.k.containerId}-button-image`).classList.remove('active');
-      document.getElementById(`${this.k.containerId}-button-mask`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-image`)?.classList.remove('active');
+      document.getElementById(`${this.k.containerId}-button-mask`)?.classList.add('active');
       this.k.helpers.showMessage('Active: mask layer');
     });
-    document.getElementById(`${this.k.containerId}-image-opacity`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-image-opacity`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.upload.updateOpacity(parseFloat((e.target as HTMLInputElement).value));
     });
 
     // group: upload,remove,refresh,reset
-    document.getElementById(`${this.k.containerId}-button-upload`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-upload`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'upload';
       this.resetButtons();
       this.k.upload.uploadFile(false);
     });
-    document.getElementById(`${this.k.containerId}-button-remove`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-remove`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.removeNode(this.k.selected);
     });
-    document.getElementById(`${this.k.containerId}-button-reset`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-reset`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.initialize();
     });
-    document.getElementById(`${this.k.containerId}-button-refresh`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-refresh`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.stopActions();
@@ -175,111 +176,119 @@ export default class Toolbar {
     });
 
     // group: zoomin,zoomout
-    document.getElementById(`${this.k.containerId}-button-zoomin`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-zoomin`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() * 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      document.getElementById(`${this.k.containerId}-size`).textContent = `Scale: ${Math.round(scale * 100)}%`;
+      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
+      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
     });
-    document.getElementById(`${this.k.containerId}-button-zoomout`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-zoomout`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() / 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      document.getElementById(`${this.k.containerId}-size`).textContent = `Scale: ${Math.round(scale * 100)}%`;
+      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
+      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
+    });
+    document.getElementById(`${this.k.containerId}-button-zoomlock`)?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.resize.zoomLock = !this.k.resize.zoomLock;
+      this.k.resize.fitStage(this.k.container);
     });
 
-    // group: reize,crop
-    document.getElementById(`${this.k.containerId}-button-resize`).addEventListener('click', async (e) => {
+    // group: resize,crop
+    document.getElementById(`${this.k.containerId}-button-resize`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'resize';
       this.k.helpers.showMessage('Image mode=resize');
       this.k.resize.startResize();
       this.resetButtons();
-      document.getElementById(`${this.k.containerId}-button-resize`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-resize`)?.classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-button-crop`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-crop`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'crop';
       this.k.helpers.showMessage('Image mode=crop');
       this.k.resize.startClip();
       this.resetButtons();
-      document.getElementById(`${this.k.containerId}-button-crop`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-crop`)?.classList.add('active');
     });
 
     // group: paint,text
-    document.getElementById(`${this.k.containerId}-button-paint`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-paint`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'paint';
       this.k.helpers.showMessage('Image mode=paint');
       this.k.paint.startPaint();
       this.resetButtons();
-      document.getElementById(`${this.k.containerId}-button-paint`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-paint`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-paint-controls`)?.classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-button-text`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-text`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'text';
       this.k.helpers.showMessage('Image mode=text');
       this.k.paint.startText();
       this.resetButtons();
-      document.getElementById(`${this.k.containerId}-button-text`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-paint-controls`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-text-controls`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-text`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-paint-controls`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-text-controls`)?.classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-brush-size`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-brush-size`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.brushSize = parseInt((e.target as HTMLInputElement).value, 10);
     });
-    document.getElementById(`${this.k.containerId}-brush-opacity`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-brush-opacity`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.brushOpacity = parseFloat((e.target as HTMLInputElement).value);
     });
-    document.getElementById(`${this.k.containerId}-brush-mode`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-brush-mode`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.brushMode = (e.target as HTMLSelectElement).value;
     });
-    document.getElementById(`${this.k.containerId}-brush-color`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-brush-color`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.brushColor = (e.target as HTMLInputElement).value;
     });
-    document.getElementById(`${this.k.containerId}-text-font`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-text-font`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.textFont = (e.target as HTMLInputElement).value;
     });
-    document.getElementById(`${this.k.containerId}-text-value`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-text-value`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.textValue = (e.target as HTMLInputElement).value;
     });
 
     // group: outpaint
-    document.getElementById(`${this.k.containerId}-button-outpaint`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-outpaint`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'outpaint';
       this.resetButtons();
       this.k.paint.startOutpaint();
-      document.getElementById(`${this.k.containerId}-button-outpaint`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-outpaint-controls`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-outpaint-expand`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-outpaint-expand`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.outpaintExpand = parseInt((e.target as HTMLInputElement).value, 10);
       this.k.paint.startOutpaint();
     });
-    document.getElementById(`${this.k.containerId}-outpaint-blur`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-outpaint-blur`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.paint.outpaintBlur = parseFloat((e.target as HTMLInputElement).value);
@@ -287,23 +296,23 @@ export default class Toolbar {
     });
 
     // group: filters
-    document.getElementById(`${this.k.containerId}-button-filters`).addEventListener('click', async (e) => {
+    document.getElementById(`${this.k.containerId}-button-filters`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'filters';
       this.k.helpers.showMessage('Image mode=filters');
       this.k.stopActions();
-      if (document.getElementById(`${this.k.containerId}-button-filters`).classList.contains('active')) this.k.filter.applyFilter();
+      if (document.getElementById(`${this.k.containerId}-button-filters`)?.classList.contains('active')) this.k.filter.applyFilter();
       this.resetButtons();
-      document.getElementById(`${this.k.containerId}-button-filters`).classList.add('active');
-      document.getElementById(`${this.k.containerId}-filter-controls`).classList.add('active');
+      document.getElementById(`${this.k.containerId}-button-filters`)?.classList.add('active');
+      document.getElementById(`${this.k.containerId}-filter-controls`)?.classList.add('active');
     });
-    document.getElementById(`${this.k.containerId}-filter-value`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-filter-value`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.filter.filterValue = parseInt((e.target as HTMLInputElement).value, 10);
     });
-    document.getElementById(`${this.k.containerId}-filter-name`).addEventListener('input', async (e) => {
+    document.getElementById(`${this.k.containerId}-filter-name`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.k.filter.filterName = (e.target as HTMLSelectElement).value;

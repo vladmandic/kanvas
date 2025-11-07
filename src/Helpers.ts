@@ -12,8 +12,10 @@ export default class Helpers {
     return images.length === 0;
   }
 
-  async showMessage(msg: string, duration = 300000) {
-    console.log(msg); // eslint-disable-line no-console
+  async showMessage(msg: string, duration = 4000) {
+    // @ts-ignore
+    if (typeof log !== 'undefined') log('Kanvas', msg); // eslint-disable-line no-undef
+    else console.log('Kanvas', msg); // eslint-disable-line no-console
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
     if (!msgEl) return;
     msgEl.classList.remove('fade-out');
@@ -34,7 +36,7 @@ export default class Helpers {
       const scale = e.evt.deltaY > 0 ? this.k.stage.scaleX() / 1.05 : this.k.stage.scaleX() * 1.05;
       this.k.stage.scale({ x: scale, y: scale });
       this.k.stage.batchDraw();
-      this.showMessage(`scale: ${Math.round(scale * 100)}%`);
+      this.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
     this.k.container.addEventListener('dragover', (e) => e.preventDefault());
     this.k.container.addEventListener('dragleave', (e) => e.preventDefault());
