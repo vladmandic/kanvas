@@ -34,8 +34,11 @@ export default class Paint {
     this.k.stage.on('mousedown touchstart', () => {
       if (this.k.imageMode !== 'paint') return;
       isPaint = true;
+      this.k.layer = this.k.selectedLayer === 'image' ? this.k.imageLayer : this.k.maskLayer;
+      this.k.group = this.k.selectedLayer === 'image' ? this.k.imageGroup : this.k.maskGroup;
       const pos = this.k.stage.getPointerPosition();
       const brushColor = this.k.selectedLayer === 'image' ? this.k.paint.brushColor : hexToGrayscale(this.k.paint.brushColor);
+      if (!pos) return;
       lastLine = new Konva.Line({
         stroke: brushColor,
         strokeWidth: 2 * this.k.paint.brushSize,
@@ -45,7 +48,7 @@ export default class Paint {
         lineJoin: 'round',
         points: [pos.x, pos.y, pos.x, pos.y], // add point twice, so we have some drawings even on a simple click
       });
-      this.k.layer.add(lastLine);
+      this.k.group.add(lastLine);
     });
 
     this.k.stage.on('mouseup touchend', () => {
@@ -57,6 +60,7 @@ export default class Paint {
       if (!isPaint) return;
       e.evt.preventDefault();
       const pos = this.k.stage.getPointerPosition();
+      if (!pos) return;
       const newPoints = lastLine.points().concat([pos.x, pos.y]);
       lastLine.points(newPoints);
     });
@@ -106,8 +110,8 @@ export default class Paint {
   startText() {
     this.k.stopActions();
     let isText = true;
-    let pos0: Konva.Vector2d;
-    let pos1: Konva.Vector2d;
+    let pos0: Konva.Vector2d | null;
+    let pos1: Konva.Vector2d | null;
     this.k.stage.on('mousedown touchstart', () => {
       if (!isText) return;
       pos0 = this.k.stage.getPointerPosition();
@@ -119,6 +123,7 @@ export default class Paint {
       this.k.toolbar.resetButtons();
       let fontSize = 4;
       while (true) { // eslint-disable-line no-constant-condition
+        if (!pos0 || !pos1) continue;
         const text = new Konva.Text({
           x: pos0.x,
           y: pos0.y,

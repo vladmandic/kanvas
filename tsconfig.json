@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
+    "paths": {
+      "tslib": ["node_modules/tslib/tslib.d.ts"],
+      "konva": ["node_modules/konva"]
+    },
+    "moduleResolution": "bundler",
     "module": "es2022",
     "target": "es2022",
     "typeRoots": ["node_modules/@types"],
     "lib": ["dom", "es2022"],
     "baseUrl": "./",
-    "paths": { "tslib": ["node_modules/tslib/tslib.d.ts"] },
     "sourceMap": true,
     "noEmitOnError": false,
     "emitDeclarationOnly": true,

@@ -3,7 +3,7 @@ import Kanvas from './Kanvas';
 
 export default class Resize {
   k: Kanvas;
-  clipBox: Konva.Rect;
+  clipBox: Konva.Rect | undefined;
   debounce: number = 200;
   debounceFit: number = 0;
   debounceResize: number = 0;
@@ -143,7 +143,7 @@ export default class Resize {
       anchorCornerRadius: 2,
     });
     this.k.layer.add(clipTransformer);
-    this.clipBox.on('transformend dragend', () => this.applyClip(this.clipBox));
+    this.clipBox.on('transformend dragend', () => this.applyClip(this.clipBox as Konva.Rect));
   }
 
   stopClip() {

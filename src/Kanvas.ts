@@ -7,19 +7,20 @@ import Paint from './Paint';
 import Filter from './Filters';
 
 export default class Kanvas {
+  initial: boolean = true;
   // elements
   containerId: string;
   wrapper: HTMLElement;
   container: HTMLElement;
   // konva objects
-  stage: Konva.Stage;
-  imageLayer: Konva.Layer;
-  maskLayer: Konva.Layer;
-  layer: Konva.Layer; // meta
-  group: Konva.Group; // meta
-  imageGroup: Konva.Group;
-  maskGroup: Konva.Group;
-  selected: Konva.Node;
+  stage!: Konva.Stage;
+  imageLayer!: Konva.Layer;
+  maskLayer!: Konva.Layer;
+  layer!: Konva.Layer; // meta
+  group!: Konva.Group; // meta
+  imageGroup!: Konva.Group;
+  maskGroup!: Konva.Group;
+  selected!: Konva.Node;
   // modes
   selectedLayer: 'image' | 'mask' = 'image';
   imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' | 'outpaint' = 'upload';
@@ -32,6 +33,8 @@ export default class Kanvas {
   resize: Resize;
   paint: Paint;
   filter: Filter;
+  // callbacks
+  onchange: () => void;
 
   initImage() {
     this.imageLayer = new Konva.Layer();
@@ -58,10 +61,10 @@ export default class Kanvas {
     this.stage.add(this.initMask());
     this.layer = this.selectedLayer === 'image' ? this.imageLayer : this.maskLayer;
     this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
-    console.log(`Kanvas: konva=${Konva.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`); // eslint-disable-line no-console
   }
 
   constructor(containerId: string) {
+    this.onchange = () => {};
     this.containerId = containerId;
     this.wrapper = document.getElementById(containerId) as HTMLElement;
     this.wrapper.className = 'kanvas-wrapper';
@@ -79,6 +82,10 @@ export default class Kanvas {
     this.upload = new Upload(this);
     this.paint = new Paint(this);
     this.filter = new Filter(this);
+
+    // log first init
+    if (this.initial) this.helpers.kanvasLog(`konva=${Konva.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`);
+    this.initial = false;
 
     // init events
     this.helpers.bindEvents();
@@ -117,6 +124,64 @@ export default class Kanvas {
     }
     */
   }
+
+  getImageData() {
+    const imageCanvas = this.imageLayer.toCanvas({ x: 0, y: 0, width: this.imageLayer.width(), height: this.imageLayer.height() });
+    const ctxCanvas = imageCanvas.getContext('2d') as CanvasRenderingContext2D;
+    let imageData: ImageData | null = ctxCanvas.getImageData(0, 0, imageCanvas.width, imageCanvas.height); // imageData.data is Uint8ClampedArray [r,g,b,a,...]
+    const maskCanvas = this.maskLayer.toCanvas({ x: 0, y: 0, width: this.maskLayer.width(), height: this.maskLayer.height() });
+    const ctxMask = maskCanvas.getContext('2d') as CanvasRenderingContext2D;
+    let maskData: ImageData | null = ctxMask.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+    const imageEmpty = imageData.data.every((value) => value === 0);
+    const maskEmpty = maskData.data.every((value) => value === 0);
+    if (imageEmpty) {
+      imageData = null;
+      this.helpers.showMessage('No image');
+      return null;
+    }
+    if (maskEmpty) {
+      maskData = null;
+      this.helpers.showMessage(`Send image ${imageData.width} x ${imageData.height}`);
+      return {
+        kanvas: true,
+        image: imageData?.data,
+        imageWidth: imageData?.width,
+        imageHeight: imageData?.height,
+      };
+    }
+    this.helpers.showMessage(`Send image ${imageData.width} x ${imageData.height} mask ${maskData.width} x ${maskData.height}`);
+    return {
+      kanvas: true,
+      image: imageData?.data,
+      imageWidth: imageData?.width,
+      imageHeight: imageData?.height,
+      mask: maskData?.data,
+      maskWidth: maskData?.width,
+      maskHeight: maskData?.height,
+    };
+  }
+
+  getImage() {
+    let imageData: string | null = null;
+    let maskData: string | null = null;
+    if (this.imageGroup.hasChildren()) {
+      const imageCanvas = this.imageLayer.toCanvas({ x: 0, y: 0, width: this.imageLayer.width(), height: this.imageLayer.height() }) as HTMLCanvasElement;
+      imageData = imageCanvas.toDataURL('image/png');
+    }
+    if (this.maskGroup.hasChildren()) {
+      const maskCanvas = this.maskLayer.toCanvas({ x: 0, y: 0, width: this.maskLayer.width(), height: this.maskLayer.height() }) as HTMLCanvasElement;
+      maskData = maskCanvas.toDataURL('image/png');
+    }
+    if (!imageData) {
+      // this.helpers.showMessage('No image');
+      return null;
+    }
+    const result = { kanvas: true };
+    if (imageData) result['image'] = imageData;
+    if (maskData) result['mask'] = maskData;
+    this.helpers.showMessage(`Send image: ${imageData ? imageData.length : 0} mask: ${maskData ? maskData.length : 0}`);
+    return result;
+  }
 }
 
 // expose Kanvas globally
@@ -127,4 +192,4 @@ declare global {
   }
 }
 window.Kanvas = Kanvas;
-window.kanvas = (el: string) => new Kanvas(el);
+// window.kanvas = (el: string) => new Kanvas(el);

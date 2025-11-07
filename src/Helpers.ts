@@ -12,10 +12,14 @@ export default class Helpers {
     return images.length === 0;
   }
 
-  async showMessage(msg: string, duration = 4000) {
+  async kanvasLog(message: string) { // eslint-disable-line class-methods-use-this
     // @ts-ignore
-    if (typeof log !== 'undefined') log('Kanvas', msg); // eslint-disable-line no-undef
-    else console.log('Kanvas', msg); // eslint-disable-line no-console
+    if (typeof log !== 'undefined') log('Kanvas:', message); // eslint-disable-line no-undef
+    else console.log('Kanvas:', message); // eslint-disable-line no-console
+  }
+
+  async showMessage(msg: string, duration = 5000) {
+    this.kanvasLog(msg);
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
     if (!msgEl) return;
     msgEl.classList.remove('fade-out');

@@ -16,6 +16,7 @@
     "url": "git+https://github.com/vladmandic/kanvas.git"
   },
   "keywords": [],
+  "type": "module",
   "dependencies": {
     "@types/node": "^24.9.1",
     "@typescript-eslint/eslint-plugin": "^8.46.2",

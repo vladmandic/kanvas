@@ -6,6 +6,7 @@
   <title>Kanvas</title>
   <meta name="description" content="Kanvas" />
   <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="../fonts.css" />
   <link rel="stylesheet" href="../style.css" />
   <script type="module" src="./dist/kanvas.esm.js"></script>
   <style>
@@ -15,7 +16,7 @@
 <body>
   <div id="kanvas-container"></div>
   <script type="module">
-    const _instance = kanvas('kanvas-container'); // bind to container
+    const _kanvasInstance = new Kanvas('kanvas-container'); // bind to container
   </script>
 </body>
 </html>
