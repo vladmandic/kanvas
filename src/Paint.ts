@@ -13,7 +13,7 @@ function hexToGrayscale(hex: string) {
 
 export default class Paint {
   k: Kanvas;
-  brushSize: number = 10;
+  brushSize: number;
   brushOpacity: number = 1;
   brushMode: string = 'source-over';
   brushColor: string = '#ffffff';
@@ -24,6 +24,7 @@ export default class Paint {
 
   constructor(k: Kanvas) {
     this.k = k;
+    this.brushSize = this.k.settings.settings.brushSize;
   }
 
   startPaint() {

@@ -7,9 +7,12 @@ export default class Resize {
   debounce: number = 200;
   debounceFit: number = 0;
   debounceResize: number = 0;
-  zoomLock: boolean = false;
   constructor(k: Kanvas) {
     this.k = k;
+  }
+
+  async initSettings() {
+    this.fitStage(this.k.container);
   }
 
   async _fitStage(el: HTMLElement) {
@@ -18,7 +21,7 @@ export default class Resize {
     if (this.k.helpers.isEmpty()) {
       this.k.wrapper.style.overflow = 'hidden';
     }
-    if (this.zoomLock) {
+    if (this.k.settings.settings.zoomLock) {
       this.k.wrapper.style.overflow = 'auto';
     } else {
       this.k.wrapper.style.overflow = 'hidden';

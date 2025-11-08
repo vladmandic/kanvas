@@ -1,4 +1,5 @@
 import Konva from 'konva';
+import Settings from './Settings';
 import Helpers from './Helpers';
 import Toolbar from './Toolbar';
 import Upload from './Upload';
@@ -12,6 +13,7 @@ export default class Kanvas {
   containerId: string;
   wrapper: HTMLElement;
   container: HTMLElement;
+  controls: HTMLSpanElement;
   // konva objects
   stage!: Konva.Stage;
   imageLayer!: Konva.Layer;
@@ -27,6 +29,7 @@ export default class Kanvas {
   // variables
   opacity: number = 1;
   // class extensions
+  settings: Settings;
   toolbar: Toolbar;
   helpers: Helpers;
   upload: Upload;
@@ -61,6 +64,7 @@ export default class Kanvas {
     this.stage.add(this.initMask());
     this.layer = this.selectedLayer === 'image' ? this.imageLayer : this.maskLayer;
     this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
+    if (this.controls) this.controls.style.display = 'none';
   }
 
   constructor(containerId: string) {
@@ -77,6 +81,7 @@ export default class Kanvas {
 
     // init helpers
     this.helpers = new Helpers(this);
+    this.settings = new Settings(this);
     this.toolbar = new Toolbar(this);
     this.resize = new Resize(this);
     this.upload = new Upload(this);
@@ -85,6 +90,7 @@ export default class Kanvas {
 
     // log first init
     if (this.initial) this.helpers.kanvasLog(`konva=${Konva.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`);
+    this.controls = document.getElementById(`${this.containerId}-active-controls`) as HTMLSpanElement;
     this.initial = false;
 
     // init events

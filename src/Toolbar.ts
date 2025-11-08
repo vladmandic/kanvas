@@ -16,72 +16,82 @@ export default class Toolbar {
       <span class="kanvas-button" title="Upload image to active layer" id="${this.k.containerId}-button-upload">\udb82\udc7c</span>
       <span class="kanvas-button" title="Remove currently selected image" id="${this.k.containerId}-button-remove">\udb85\udc18</span>
       <span class="kanvas-button" title="Reset stage" id="${this.k.containerId}-button-reset">\uf1b8</span>
-      <span id="${this.k.containerId}-image-controls" class="kanvas-section active">
-        <input type="range" id="${this.k.containerId}-image-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Change image opacity for currently selected image" />
+
+      <span id="${this.k.containerId}-active-controls" style="display: none;">
+        <span id="${this.k.containerId}-image-controls" class="kanvas-section active">
+          <input type="range" id="${this.k.containerId}-image-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Change image opacity for currently selected image" />
+        </span>
+
+        <span class="kanvas-separator"> | </span>
+        <span class="kanvas-button" title="Reset actions and refresh vierw" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
+        <span class="kanvas-button" title="Resize currently selected image" id="${this.k.containerId}-button-resize">\udb81\ude55</span>
+        <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\udb80\udd9e</span>
+        <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uf1fc</span>
+        <span class="kanvas-button" title="Outpaint" id="${this.k.containerId}-button-outpaint">\udb80\udc4c</span>
+        <span class="kanvas-button" title="Apply filters on currently selected image" id="${this.k.containerId}-button-filters">\udb80\udef0</span>
+        <span class="kanvas-button" title="Draw text" id="${this.k.containerId}-button-text">\udb80\ude84</span>
+
+        <span id="${this.k.containerId}-paint-controls" class="kanvas-section">
+          <span class="kanvas-separator"> | </span>
+          <input type="range" id="${this.k.containerId}-brush-size" class="kanvas-slider" min="1" max="100" step="1" value="20" title="Brush size" />
+          <input type="range" id="${this.k.containerId}-brush-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Brush opacity" />
+          <select id="${this.k.containerId}-brush-mode" class="kanvas-select" title="Brush mode">
+            <option value="source-over">source-over</option>
+            <option value="destination-out">destination-out</option>
+            <option value="darken">darken</option>
+            <option value="lighten">lighten</option>
+            <option value="color-dodge">color-dodge</option>
+            <option value="color-burn">color-burn</option>
+            <option value="hard-light">hard-light</option>
+            <option value="soft-light">soft-light</option>
+            <option value="difference">difference</option>
+            <option value="exclusion">exclusion</option>
+            <option value="hue">hue</option>
+            <option value="saturation">saturation</option>
+            <option value="color">color</option>
+            <option value="luminosity">luminosity</option>
+          </select>
+          <input type="color" id="${this.k.containerId}-brush-color" class="kanvas-colorpicker" value="#ffffff" title="Brush color" />
+        </span>
+
+        <span id="${this.k.containerId}-outpaint-controls" class="kanvas-section">
+          <span class="kanvas-separator"> | </span>
+          <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.1" title="Outpaint edge blur" />
+          <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="-100" max="100" step="1" value="-15 " title="Outpaint edge expand" />
+        </span>
+
+        <span id="${this.k.containerId}-filter-controls" class="kanvas-section">
+          <span class="kanvas-separator"> | </span>
+          <input type="range" id="${this.k.containerId}-filter-value" class="kanvas-slider" min="0" max="100" step="1" value="10" title="Filter value" />
+          <select id="${this.k.containerId}-filter-name" class="kanvas-select" title="Active image filter">
+            <option value="blur">blur</option>
+            <option value="brightness">brightness</option>
+            <option value="contrast">contrast</option>
+            <option value="enhance">enhance</option>
+            <option value="grayscale">grayscale</option>
+            <option value="invert">invert</option>
+            <option value="mask">mask</option>
+            <option value="noise">noise</option>
+            <option value="pixelate">pixelate</option>
+            <option value="threshold">threshold</option>
+          </select>
+        </span>
+        
+        <span id="${this.k.containerId}-text-controls" class="kanvas-section">
+          <span class="kanvas-separator"> | </span>
+          <input type="text" id="${this.k.containerId}-text-font" class="kanvas-textbox" value="Calibri" title="Text font" />
+          <input type="text" id="${this.k.containerId}-text-value" class="kanvas-textbox" placeholder="enter text" title="Text value" />
+        </span>
+
+        <span class="kanvas-separator"> | </span>
+        <span class="kanvas-button" title="Zoom in" id="${this.k.containerId}-button-zoomin">\uf531</span>
+        <span class="kanvas-button" title="Zoom lock" id="${this.k.containerId}-button-zoomlock">\udb84\ude76</span>
+        <span class="kanvas-button" title="Zoom out" id="${this.k.containerId}-button-zoomout">\uf532</span>
       </span>
 
       <span class="kanvas-separator"> | </span>
-      <span class="kanvas-button" title="Reset actions and refresh vierw" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
-      <span class="kanvas-button" title="Resize currently selected image" id="${this.k.containerId}-button-resize">\udb81\ude55</span>
-      <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\udb80\udd9e</span>
-      <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uf1fc</span>
-      <span class="kanvas-button" title="Outpaint" id="${this.k.containerId}-button-outpaint">\udb80\udc4c</span>
-      <span class="kanvas-button" title="Apply filters on currently selected image" id="${this.k.containerId}-button-filters">\udb80\udef0</span>
-      <span class="kanvas-button" title="Draw text" id="${this.k.containerId}-button-text">\udb80\ude84</span>
-
-      <span id="${this.k.containerId}-paint-controls" class="kanvas-section">
-        <span class="kanvas-separator"> | </span>
-        <input type="range" id="${this.k.containerId}-brush-size" class="kanvas-slider" min="1" max="100" step="1" value="10" title="Brush size" />
-        <input type="range" id="${this.k.containerId}-brush-opacity" class="kanvas-slider" min="0" max="1" step="0.01" value="1" title="Brush opacity" />
-        <select id="${this.k.containerId}-brush-mode" class="kanvas-select" title="Brush mode">
-          <option value="source-over">source-over</option>
-          <option value="destination-out">destination-out</option>
-          <option value="darken">darken</option>
-          <option value="lighten">lighten</option>
-          <option value="color-dodge">color-dodge</option>
-          <option value="color-burn">color-burn</option>
-          <option value="hard-light">hard-light</option>
-          <option value="soft-light">soft-light</option>
-          <option value="difference">difference</option>
-          <option value="exclusion">exclusion</option>
-          <option value="hue">hue</option>
-          <option value="saturation">saturation</option>
-          <option value="color">color</option>
-          <option value="luminosity">luminosity</option>
-        </select>
-        <input type="color" id="${this.k.containerId}-brush-color" class="kanvas-colorpicker" value="#ffffff" title="Brush color" />
-      </span>
-      <span id="${this.k.containerId}-outpaint-controls" class="kanvas-section">
-        <span class="kanvas-separator"> | </span>
-        <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.1" title="Outpaint edge blur" />
-        <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="-100" max="100" step="1" value="-15 " title="Outpaint edge expand" />
-      </span>
-      <span id="${this.k.containerId}-filter-controls" class="kanvas-section">
-        <span class="kanvas-separator"> | </span>
-        <input type="range" id="${this.k.containerId}-filter-value" class="kanvas-slider" min="0" max="100" step="1" value="10" title="Filter value" />
-        <select id="${this.k.containerId}-filter-name" class="kanvas-select" title="Active image filter">
-          <option value="blur">blur</option>
-          <option value="brightness">brightness</option>
-          <option value="contrast">contrast</option>
-          <option value="enhance">enhance</option>
-          <option value="grayscale">grayscale</option>
-          <option value="invert">invert</option>
-          <option value="mask">mask</option>
-          <option value="noise">noise</option>
-          <option value="pixelate">pixelate</option>
-          <option value="threshold">threshold</option>
-        </select>
-      </span>
-      <span id="${this.k.containerId}-text-controls" class="kanvas-section">
-        <span class="kanvas-separator"> | </span>
-        <input type="text" id="${this.k.containerId}-text-font" class="kanvas-textbox" value="Calibri" title="Text font" />
-        <input type="text" id="${this.k.containerId}-text-value" class="kanvas-textbox" placeholder="enter text" title="Text value" />
-      </span>
-
-      <span class="kanvas-separator"> | </span>
-      <span class="kanvas-button" title="Zoom in" id="${this.k.containerId}-button-zoomin">\uf531</span>
-      <span class="kanvas-button" title="Zoom lock" id="${this.k.containerId}-button-zoomlock">\udb84\ude76</span>
-      <span class="kanvas-button" title="Zoom out" id="${this.k.containerId}-button-zoomout">\uf532</span>
+      <span class="kanvas-button" title="Settings" id="${this.k.containerId}-button-settings">\ueb52</span>
+      <span class="kanvas-button" title="Information" id="${this.k.containerId}-button-info">\udb80\udefd</span>
       <span class="kanvas-separator"> | </span>
       <span class="kanvas-text" id="${this.k.containerId}-size"></span>
       <span class="kanvas-text" id="${this.k.containerId}-message"></span>
@@ -108,7 +118,7 @@ export default class Toolbar {
   }
 
   async hide() {
-    this.el.classList.remove('active');
+    if (this.k.settings.settings.allowHide) this.el.classList.remove('active');
   }
 
   async bindControls() {
@@ -195,8 +205,19 @@ export default class Toolbar {
     document.getElementById(`${this.k.containerId}-button-zoomlock`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.k.resize.zoomLock = !this.k.resize.zoomLock;
+      this.k.settings.settings.zoomLock = !this.k.settings.settings.zoomLock;
       this.k.resize.fitStage(this.k.container);
+    });
+    // group: settings,info
+    document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.settings.showSettings();
+    });
+    document.getElementById(`${this.k.containerId}-button-info`)?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.k.settings.showInfo();
     });
 
     // group: resize,crop

@@ -1,8 +1,8 @@
 import '../dist/kanvas.esm.js';
 
 let kanvasInstance = null;
-const kanvasElement = 'control_input_select';
-const kanvasChangeButton = 'control_input_change';
+const kanvasElement = 'kanvas-container';
+const kanvasChangeButton = 'kanvas-change-button';
 
 async function initKanvas() {
   while (!document.getElementById(kanvasElement)) await new Promise((resolve) => setTimeout(resolve, 100)); // eslint-disable-line no-promise-executor-return

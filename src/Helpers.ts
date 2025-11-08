@@ -18,10 +18,10 @@ export default class Helpers {
     else console.log('Kanvas:', message); // eslint-disable-line no-console
   }
 
-  async showMessage(msg: string, duration = 5000) {
+  async showMessage(msg: string, duration = this.k.settings.settings.messageTimeout) {
     this.kanvasLog(msg);
     const msgEl = document.getElementById(`${this.k.containerId}-message`);
-    if (!msgEl) return;
+    if (!msgEl || !this.k.settings.settings.messageShow) return;
     msgEl.classList.remove('fade-out');
     msgEl.innerHTML = '<span class="kanvas-separator"> | </span>' + msg;
     msgEl.classList.add('active');
