@@ -31,8 +31,9 @@ export default class Upload {
           draggable: false,
           opacity: this.k.opacity,
         });
+        image.name(file.name);
         this.k.controls.style.display = 'contents';
-        this.k.helpers.showMessage(`Loaded ${this.k.selectedLayer}: ${file.name} width=${image.width()} height=${image.height()}`);
+        this.k.helpers.showMessage(`Loaded ${this.k.selectedLayer}: ${file.name} ${image.width()} x ${image.height()}`);
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });

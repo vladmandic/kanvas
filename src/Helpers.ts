@@ -31,9 +31,16 @@ export default class Helpers {
     }, duration);
   }
 
-  async bindEvents() {
-    // this.k.stage.on('contextmenu', (e) => {});
-    this.k.stage.on('click tap', () => this.k.upload.uploadFile());
+  async bindStage() {
+    this.k.stage.on('contextmenu', (e) => {
+      e.evt.preventDefault();
+      e.evt.stopPropagation();
+      this.k.settings.showSettings();
+    });
+    this.k.stage.on('click tap', (e) => {
+      if (e.evt.button === 2) return; // right click
+      this.k.upload.uploadFile();
+    });
     this.k.stage.on('dblclick dbltap', () => this.k.resize.resizeStage(this.k.group));
     this.k.stage.on('wheel', (e) => {
       e.evt.preventDefault();
@@ -42,6 +49,9 @@ export default class Helpers {
       this.k.stage.batchDraw();
       this.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
+  }
+
+  async bindEvents() {
     this.k.container.addEventListener('dragover', (e) => e.preventDefault());
     this.k.container.addEventListener('dragleave', (e) => e.preventDefault());
     this.k.container.addEventListener('drop', async (e) => this.k.upload.uploadImage(e));

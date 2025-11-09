@@ -1,5 +1,6 @@
 import Konva from 'konva';
 import Kanvas from './Kanvas';
+import { fillTransparent } from './Fill';
 
 function hexToGrayscale(hex: string) {
   const _hex = hex.replace('#', '');
@@ -73,10 +74,36 @@ export default class Paint {
     this.k.layer.batchDraw();
   }
 
+  fillOutpaint() {
+    const canvas = this.k.imageLayer.toCanvas() as HTMLCanvasElement;
+    const { top, bottom, left, right } = fillTransparent(canvas, 0);
+    for (const fill of [top, bottom, left, right]) {
+      const imgDataUrl = fill.toDataURL();
+      const img = new Image();
+      img.src = imgDataUrl;
+      img.onload = () => {
+        const konvaImg = new Konva.Image({
+          x: 0,
+          y: 0,
+          image: img,
+          width: this.k.stage.width(),
+          height: this.k.stage.height(),
+        });
+        konvaImg.name('fill');
+        this.k.imageGroup.add(konvaImg);
+        this.k.imageLayer.batchDraw();
+      };
+    }
+  }
+
   startOutpaint() {
     this.k.stopActions();
     this.k.imageMode = 'outpaint';
     this.k.helpers.showMessage(`Image mode=outpaint blur=${this.k.paint.outpaintBlur} expand=${this.k.paint.outpaintExpand}`);
+    if (this.k.settings.settings.outpaintFill) {
+      this.fillOutpaint(); // edges
+      this.fillOutpaint(); // corners
+    }
     const fillRect = new Konva.Rect({
       x: 0,
       y: 0,
@@ -88,6 +115,7 @@ export default class Paint {
     this.k.maskGroup.add(fillRect);
     const images = this.k.stage.find('Image');
     for (const image of images) {
+      if (image.name() === 'fill') continue;
       const imageRect = new Konva.Rect({
         x: image.x() - (this.outpaintExpand / 2),
         y: image.y() - (this.outpaintExpand / 2),

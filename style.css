@@ -41,9 +41,9 @@
 .kanvas-text { font-size: 0.7em; cursor: pointer; opacity: 0.75; }
 .kanvas-text.active { display: inline; opacity: 0.75; animation: fade-in 1.0s ease-in forwards; }
 
-.kanvas-settings { position: absolute; background: hsl(var(--kanvas-color), 0%, 10%); margin-top: 1em; margin-left: 1em; padding: 0.5em; border-radius: 4px; filter: drop-shadow(2px 2px 2px hsl(var(--kanvas-color), 50%, 0%));display: none; }
+.kanvas-settings { position: absolute; background: hsl(var(--kanvas-color), 0%, 10%); margin-top: 1em; margin-left: 1em; padding: 0.5em; border-radius: 4px; filter: drop-shadow(2px 2px 2px hsl(var(--kanvas-color), 50%, 0%)); top: calc(4 * var(--kanvas-size)); display: none; }
 
-.kanvas-settings label { display: inline-block; min-width: 160px; line-height: 2.4em; }
+.kanvas-settings label { display: inline-block; min-width: 180px; line-height: 2.4em; }
 
 @keyframes fade-in {
   0% { opacity: 0; display: none; }

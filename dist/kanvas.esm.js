@@ -11489,6 +11489,9 @@ var html = `
   <br/>
   <label for="brush-size">Brush size (px):</label>
   <input type="number" id="kanvas-settings-brush-size" name="kanvas-settings-brush-size" min="1" max="100" value="20"/>
+  <br/>
+  <label for="outpaint-fill">Outpaint fill:</label>
+  <input type="checkbox" id="kanvas-settings-outpaint-fill" name="kanvas-settings-outpaint-fill"/>
 `;
 var Settings = class {
   k;
@@ -11497,10 +11500,11 @@ var Settings = class {
     allowHide: true,
     toolbarSize: 18,
     toolbarColor: 190,
+    brushSize: 20,
+    outpaintFill: false,
     zoomLock: false,
     messageShow: true,
-    messageTimeout: 5e3,
-    brushSize: 20
+    messageTimeout: 5e3
   };
   constructor(k) {
     this.k = k;
@@ -11509,7 +11513,7 @@ var Settings = class {
     this.el.id = `${this.k.containerId}-settings`;
     this.el.className = "kanvas-settings";
     this.el.innerHTML = html;
-    this.k.container.appendChild(this.el);
+    this.k.wrapper.appendChild(this.el);
   }
   setCSS() {
     document.documentElement.style.setProperty("--kanvas-size", `${this.settings.toolbarSize}px`);
@@ -11540,6 +11544,7 @@ var Settings = class {
       document.getElementById("kanvas-settings-message-show").checked = this.settings.messageShow;
       document.getElementById("kanvas-settings-message-timeout").value = String(this.settings.messageTimeout);
       document.getElementById("kanvas-settings-brush-size").value = String(this.settings.brushSize);
+      document.getElementById("kanvas-settings-outpaint-fill").checked = this.settings.outpaintFill;
     } else {
       this.settings.allowHide = document.getElementById("kanvas-settings-allow-hide").checked;
       this.settings.toolbarSize = parseInt(document.getElementById("kanvas-settings-size").value, 10);
@@ -11548,6 +11553,7 @@ var Settings = class {
       this.settings.messageShow = document.getElementById("kanvas-settings-message-show").checked;
       this.settings.messageTimeout = parseInt(document.getElementById("kanvas-settings-message-timeout").value, 10);
       this.settings.brushSize = parseInt(document.getElementById("kanvas-settings-brush-size").value, 10);
+      this.settings.outpaintFill = document.getElementById("kanvas-settings-outpaint-fill").checked;
       this.saveSettings();
     }
     this.el.style.display = isVisible ? "none" : "block";
@@ -11583,8 +11589,16 @@ var Helpers = class {
       msgEl.innerHTML = "";
     }, duration);
   }
-  async bindEvents() {
-    this.k.stage.on("click tap", () => this.k.upload.uploadFile());
+  async bindStage() {
+    this.k.stage.on("contextmenu", (e) => {
+      e.evt.preventDefault();
+      e.evt.stopPropagation();
+      this.k.settings.showSettings();
+    });
+    this.k.stage.on("click tap", (e) => {
+      if (e.evt.button === 2) return;
+      this.k.upload.uploadFile();
+    });
     this.k.stage.on("dblclick dbltap", () => this.k.resize.resizeStage(this.k.group));
     this.k.stage.on("wheel", (e) => {
       e.evt.preventDefault();
@@ -11593,6 +11607,8 @@ var Helpers = class {
       this.k.stage.batchDraw();
       this.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
+  }
+  async bindEvents() {
     this.k.container.addEventListener("dragover", (e) => e.preventDefault());
     this.k.container.addEventListener("dragleave", (e) => e.preventDefault());
     this.k.container.addEventListener("drop", async (e) => this.k.upload.uploadImage(e));
@@ -11952,8 +11968,9 @@ var Upload = class {
           draggable: false,
           opacity: this.k.opacity
         });
+        image.name(file.name);
         this.k.controls.style.display = "contents";
-        this.k.helpers.showMessage(`Loaded ${this.k.selectedLayer}: ${file.name} width=${image.width()} height=${image.height()}`);
+        this.k.helpers.showMessage(`Loaded ${this.k.selectedLayer}: ${file.name} ${image.width()} x ${image.height()}`);
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });
@@ -12142,6 +12159,133 @@ var Resize = class {
   }
 };
 
+// src/Fill.ts
+function fillTransparent(canvas, alphaThreshold = 0) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    const empty = document.createElement("canvas");
+    return { top: empty, bottom: empty, left: empty, right: empty };
+  }
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w === 0 || h === 0) {
+    const empty = document.createElement("canvas");
+    empty.width = w;
+    empty.height = h;
+    return { top: empty, bottom: empty, left: empty, right: empty };
+  }
+  const src = ctx.getImageData(0, 0, w, h);
+  const sdata = src.data;
+  const total = w * h;
+  const topBuf = new Uint8ClampedArray(total * 4);
+  const bottomBuf = new Uint8ClampedArray(total * 4);
+  const leftBuf = new Uint8ClampedArray(total * 4);
+  const rightBuf = new Uint8ClampedArray(total * 4);
+  const writePixel = (buf, p, r, g, b, a) => {
+    buf[p] = r;
+    buf[p + 1] = g;
+    buf[p + 2] = b;
+    buf[p + 3] = a;
+  };
+  for (let x = 0; x < w; ++x) {
+    let lastR = 0;
+    let lastG = 0;
+    let lastB = 0;
+    let lastA = 0;
+    let haveLast = false;
+    for (let y = 0; y < h; ++y) {
+      const idx = (y * w + x) * 4;
+      const a = sdata[idx + 3];
+      if (a > alphaThreshold) {
+        lastR = sdata[idx];
+        lastG = sdata[idx + 1];
+        lastB = sdata[idx + 2];
+        lastA = a;
+        haveLast = true;
+      } else if (haveLast) {
+        writePixel(topBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
+      }
+    }
+  }
+  for (let x = 0; x < w; ++x) {
+    let lastR = 0;
+    let lastG = 0;
+    let lastB = 0;
+    let lastA = 0;
+    let haveLast = false;
+    for (let y = h - 1; y >= 0; --y) {
+      const idx = (y * w + x) * 4;
+      const a = sdata[idx + 3];
+      if (a > alphaThreshold) {
+        lastR = sdata[idx];
+        lastG = sdata[idx + 1];
+        lastB = sdata[idx + 2];
+        lastA = a;
+        haveLast = true;
+      } else if (haveLast) {
+        writePixel(bottomBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
+      }
+    }
+  }
+  for (let y = 0; y < h; ++y) {
+    let lastR = 0;
+    let lastG = 0;
+    let lastB = 0;
+    let lastA = 0;
+    let haveLast = false;
+    const rowBase = y * w;
+    for (let x = 0; x < w; ++x) {
+      const idx = (rowBase + x) * 4;
+      const a = sdata[idx + 3];
+      if (a > alphaThreshold) {
+        lastR = sdata[idx];
+        lastG = sdata[idx + 1];
+        lastB = sdata[idx + 2];
+        lastA = a;
+        haveLast = true;
+      } else if (haveLast) {
+        writePixel(leftBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
+      }
+    }
+  }
+  for (let y = 0; y < h; ++y) {
+    let lastR = 0;
+    let lastG = 0;
+    let lastB = 0;
+    let lastA = 0;
+    let haveLast = false;
+    const rowBase = y * w;
+    for (let x = w - 1; x >= 0; --x) {
+      const idx = (rowBase + x) * 4;
+      const a = sdata[idx + 3];
+      if (a > alphaThreshold) {
+        lastR = sdata[idx];
+        lastG = sdata[idx + 1];
+        lastB = sdata[idx + 2];
+        lastA = a;
+        haveLast = true;
+      } else if (haveLast) {
+        writePixel(rightBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
+      }
+    }
+  }
+  const makeCanvasFromBuf = (buf) => {
+    const out = document.createElement("canvas");
+    out.width = w;
+    out.height = h;
+    const oc = out.getContext("2d");
+    if (!oc) return out;
+    const img = new ImageData(buf, w, h);
+    oc.putImageData(img, 0, 0);
+    return out;
+  };
+  const topCanvas = makeCanvasFromBuf(topBuf);
+  const bottomCanvas = makeCanvasFromBuf(bottomBuf);
+  const leftCanvas = makeCanvasFromBuf(leftBuf);
+  const rightCanvas = makeCanvasFromBuf(rightBuf);
+  return { top: topCanvas, bottom: bottomCanvas, left: leftCanvas, right: rightCanvas };
+}
+
 // src/Paint.ts
 function hexToGrayscale(hex) {
   const _hex = hex.replace("#", "");
@@ -12209,10 +12353,35 @@ var Paint = class {
     this.k.layer.find("Transformer").forEach((t) => t.destroy());
     this.k.layer.batchDraw();
   }
+  fillOutpaint() {
+    const canvas = this.k.imageLayer.toCanvas();
+    const { top, bottom, left, right } = fillTransparent(canvas, 0);
+    for (const fill of [top, bottom, left, right]) {
+      const imgDataUrl = fill.toDataURL();
+      const img = new Image();
+      img.src = imgDataUrl;
+      img.onload = () => {
+        const konvaImg = new lib_default.Image({
+          x: 0,
+          y: 0,
+          image: img,
+          width: this.k.stage.width(),
+          height: this.k.stage.height()
+        });
+        konvaImg.name("fill");
+        this.k.imageGroup.add(konvaImg);
+        this.k.imageLayer.batchDraw();
+      };
+    }
+  }
   startOutpaint() {
     this.k.stopActions();
     this.k.imageMode = "outpaint";
     this.k.helpers.showMessage(`Image mode=outpaint blur=${this.k.paint.outpaintBlur} expand=${this.k.paint.outpaintExpand}`);
+    if (this.k.settings.settings.outpaintFill) {
+      this.fillOutpaint();
+      this.fillOutpaint();
+    }
     const fillRect = new lib_default.Rect({
       x: 0,
       y: 0,
@@ -12224,6 +12393,7 @@ var Paint = class {
     this.k.maskGroup.add(fillRect);
     const images = this.k.stage.find("Image");
     for (const image of images) {
+      if (image.name() === "fill") continue;
       const imageRect = new lib_default.Rect({
         x: image.x() - this.outpaintExpand / 2,
         y: image.y() - this.outpaintExpand / 2,
@@ -12402,6 +12572,7 @@ var Kanvas = class {
     this.layer = this.selectedLayer === "image" ? this.imageLayer : this.maskLayer;
     this.group = this.selectedLayer === "image" ? this.imageGroup : this.maskGroup;
     if (this.controls) this.controls.style.display = "none";
+    if (this.helpers) this.helpers.bindStage();
   }
   constructor(containerId) {
     this.onchange = () => {
@@ -12426,6 +12597,7 @@ var Kanvas = class {
     this.controls = document.getElementById(`${this.containerId}-active-controls`);
     this.initial = false;
     this.helpers.bindEvents();
+    this.helpers.bindStage();
     this.toolbar.bindControls();
     const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
     resizeObserver.observe(this.wrapper);

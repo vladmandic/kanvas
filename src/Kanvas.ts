@@ -65,6 +65,7 @@ export default class Kanvas {
     this.layer = this.selectedLayer === 'image' ? this.imageLayer : this.maskLayer;
     this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
     if (this.controls) this.controls.style.display = 'none';
+    if (this.helpers) this.helpers.bindStage();
   }
 
   constructor(containerId: string) {
@@ -95,6 +96,7 @@ export default class Kanvas {
 
     // init events
     this.helpers.bindEvents();
+    this.helpers.bindStage();
     this.toolbar.bindControls();
 
     // initial size

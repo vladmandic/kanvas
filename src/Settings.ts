@@ -22,6 +22,9 @@ const html = `
   <br/>
   <label for="brush-size">Brush size (px):</label>
   <input type="number" id="kanvas-settings-brush-size" name="kanvas-settings-brush-size" min="1" max="100" value="20"/>
+  <br/>
+  <label for="outpaint-fill">Outpaint fill:</label>
+  <input type="checkbox" id="kanvas-settings-outpaint-fill" name="kanvas-settings-outpaint-fill"/>
 `;
 
 export default class Settings {
@@ -31,10 +34,11 @@ export default class Settings {
     allowHide: true,
     toolbarSize: 18,
     toolbarColor: 190,
+    brushSize: 20,
+    outpaintFill: false,
     zoomLock: false,
     messageShow: true,
     messageTimeout: 5000,
-    brushSize: 20,
   };
 
   constructor(k: Kanvas) {
@@ -44,7 +48,7 @@ export default class Settings {
     this.el.id = `${this.k.containerId}-settings`;
     this.el.className = 'kanvas-settings';
     this.el.innerHTML = html;
-    this.k.container.appendChild(this.el);
+    this.k.wrapper.appendChild(this.el);
   }
 
   setCSS() {
@@ -79,6 +83,7 @@ export default class Settings {
       (document.getElementById('kanvas-settings-message-show') as HTMLInputElement).checked = this.settings.messageShow;
       (document.getElementById('kanvas-settings-message-timeout') as HTMLInputElement).value = String(this.settings.messageTimeout);
       (document.getElementById('kanvas-settings-brush-size') as HTMLInputElement).value = String(this.settings.brushSize);
+      (document.getElementById('kanvas-settings-outpaint-fill') as HTMLInputElement).checked = this.settings.outpaintFill;
     } else {
       this.settings.allowHide = (document.getElementById('kanvas-settings-allow-hide') as HTMLInputElement).checked;
       this.settings.toolbarSize = parseInt((document.getElementById('kanvas-settings-size') as HTMLInputElement).value, 10);
@@ -87,6 +92,7 @@ export default class Settings {
       this.settings.messageShow = (document.getElementById('kanvas-settings-message-show') as HTMLInputElement).checked;
       this.settings.messageTimeout = parseInt((document.getElementById('kanvas-settings-message-timeout') as HTMLInputElement).value, 10);
       this.settings.brushSize = parseInt((document.getElementById('kanvas-settings-brush-size') as HTMLInputElement).value, 10);
+      this.settings.outpaintFill = (document.getElementById('kanvas-settings-outpaint-fill') as HTMLInputElement).checked;
       this.saveSettings();
     }
     this.el.style.display = isVisible ? 'none' : 'block';
