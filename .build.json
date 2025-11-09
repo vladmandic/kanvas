@@ -11,9 +11,6 @@
   "watch": {
     "locations": [ "src" ]
   },
-  "clean": {
-    "locations": ["types/*", "typedoc/*"]
-  },
   "changelog": {
     "output": "CHANGELOG.md"
   },
@@ -44,8 +41,6 @@
         "input": "src/index.ts",
         "output": "dist/kanvas.esm.js",
         "platform": "node",
-        "typings": "types",
-        "typedoc": "typedoc",
         "external": ["typedoc", "typescript", "eslint", "esbuild", "fsevents"]
       }
     ]
@@ -54,7 +49,7 @@
     "module": "es2024",
     "target": "es2024",
     "typeRoots": ["node_modules/@types"],
-    "lib": ["lib.esnext.d.ts", "lib.dom.d.ts", "lib.webworker.d.ts"],
+    "lib": ["lib.esnext.d.ts", "lib.dom.d.ts"],
     "baseUrl": "./",
     "paths": { "tslib": ["node_modules/tslib/tslib.d.ts"] },
     "sourceMap": true,
@@ -96,7 +91,7 @@
     "parserOptions": { "ecmaVersion": 2024 },
     "plugins": [ "@typescript-eslint" ],
     "extends": [ "eslint:recommended", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended" ],
-    "ignorePatterns": [ "**/dist/**", "**/typedoc/**", "**/types/**", "**/node_modules/**" ],
+    "ignorePatterns": [ "**/dist/**", "**/node_modules/**" ],
     "rules": {
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
