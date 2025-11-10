@@ -35,7 +35,6 @@ export default class Paint {
     let lastLine;
 
     this.k.stage.on('mousedown touchstart', () => {
-      console.log('HERE', this.k.imageMode, this.isPainting);
       if (this.k.imageMode !== 'paint') {
         this.isPainting = false;
         return;
