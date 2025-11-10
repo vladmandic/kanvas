@@ -22,6 +22,7 @@ export default class Paint {
   outpaintExpand: number = -15;
   textFont: string = 'Calibri';
   textValue: string = 'Hello World';
+  isPainting: boolean = false;
 
   constructor(k: Kanvas) {
     this.k = k;
@@ -30,12 +31,15 @@ export default class Paint {
 
   startPaint() {
     this.k.stopActions();
-    let isPaint = false;
+    this.isPainting = true;
     let lastLine;
 
     this.k.stage.on('mousedown touchstart', () => {
-      if (this.k.imageMode !== 'paint') return;
-      isPaint = true;
+      if (this.k.imageMode !== 'paint') {
+        this.isPainting = false;
+        return;
+      }
+      this.isPainting = true;
       this.k.layer = this.k.selectedLayer === 'image' ? this.k.imageLayer : this.k.maskLayer;
       this.k.group = this.k.selectedLayer === 'image' ? this.k.imageGroup : this.k.maskGroup;
       const pos = this.k.stage.getPointerPosition();
@@ -50,27 +54,31 @@ export default class Paint {
         lineJoin: 'round',
         points: [pos.x, pos.y, pos.x, pos.y], // add point twice, so we have some drawings even on a simple click
       });
+      lastLine.on('click', () => this.k.selectNode(lastLine));
       this.k.group.add(lastLine);
     });
 
     this.k.stage.on('mouseup touchend', () => {
-      isPaint = false;
+      if (this.isPainting) {
+        this.k.imageMode = 'none';
+        this.isPainting = false;
+      }
     });
 
     this.k.stage.on('mousemove touchmove', (e) => {
       if (this.k.imageMode !== 'paint') return;
-      if (!isPaint) return;
+      if (!this.isPainting) return;
       e.evt.preventDefault();
       const pos = this.k.stage.getPointerPosition();
-      if (!pos) return;
+      if (!pos || !lastLine) return;
       const newPoints = lastLine.points().concat([pos.x, pos.y]);
       lastLine.points(newPoints);
     });
   }
 
   stopPaint() {
-    this.k.layer.find('Line').forEach((line) => line.destroy());
-    this.k.layer.find('Transformer').forEach((t) => t.destroy());
+    // this.k.layer.find('Line').forEach((line) => line.destroy());
+    // this.k.layer.find('Transformer').forEach((t) => t.destroy());
     this.k.layer.batchDraw();
   }
 

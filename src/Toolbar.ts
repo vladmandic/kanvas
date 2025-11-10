@@ -206,6 +206,7 @@ export default class Toolbar {
       e.preventDefault();
       e.stopPropagation();
       this.k.settings.settings.zoomLock = !this.k.settings.settings.zoomLock;
+      document.getElementById(`${this.k.containerId}-button-zoomlock`)?.classList.toggle('active');
       this.k.resize.fitStage(this.k.container);
     });
     // group: settings,info

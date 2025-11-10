@@ -11640,7 +11640,7 @@ var Toolbar = class {
 
         <span class="kanvas-separator"> | </span>
         <span class="kanvas-button" title="Reset actions and refresh vierw" id="${this.k.containerId}-button-refresh">\u{F19FE}</span>
-        <span class="kanvas-button" title="Resize currently selected image" id="${this.k.containerId}-button-resize">\u{F0655}</span>
+        <span class="kanvas-button" title="Move or resize currently selected image" id="${this.k.containerId}-button-resize">\u{F0655}</span>
         <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\u{F019E}</span>
         <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uF1FC</span>
         <span class="kanvas-button" title="Outpaint" id="${this.k.containerId}-button-outpaint">\u{F004C}</span>
@@ -11812,6 +11812,7 @@ var Toolbar = class {
       e.preventDefault();
       e.stopPropagation();
       this.k.settings.settings.zoomLock = !this.k.settings.settings.zoomLock;
+      document.getElementById(`${this.k.containerId}-button-zoomlock`)?.classList.toggle("active");
       this.k.resize.fitStage(this.k.container);
     });
     document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener("click", async (e) => {
@@ -12306,17 +12307,21 @@ var Paint = class {
   outpaintExpand = -15;
   textFont = "Calibri";
   textValue = "Hello World";
+  isPainting = false;
   constructor(k) {
     this.k = k;
     this.brushSize = this.k.settings.settings.brushSize;
   }
   startPaint() {
     this.k.stopActions();
-    let isPaint = false;
+    this.isPainting = true;
     let lastLine;
     this.k.stage.on("mousedown touchstart", () => {
-      if (this.k.imageMode !== "paint") return;
-      isPaint = true;
+      if (this.k.imageMode !== "paint") {
+        this.isPainting = false;
+        return;
+      }
+      this.isPainting = true;
       this.k.layer = this.k.selectedLayer === "image" ? this.k.imageLayer : this.k.maskLayer;
       this.k.group = this.k.selectedLayer === "image" ? this.k.imageGroup : this.k.maskGroup;
       const pos = this.k.stage.getPointerPosition();
@@ -12333,24 +12338,26 @@ var Paint = class {
         points: [pos.x, pos.y, pos.x, pos.y]
         // add point twice, so we have some drawings even on a simple click
       });
+      lastLine.on("click", () => this.k.selectNode(lastLine));
       this.k.group.add(lastLine);
     });
     this.k.stage.on("mouseup touchend", () => {
-      isPaint = false;
+      if (this.isPainting) {
+        this.k.imageMode = "none";
+        this.isPainting = false;
+      }
     });
     this.k.stage.on("mousemove touchmove", (e) => {
       if (this.k.imageMode !== "paint") return;
-      if (!isPaint) return;
+      if (!this.isPainting) return;
       e.evt.preventDefault();
       const pos = this.k.stage.getPointerPosition();
-      if (!pos) return;
+      if (!pos || !lastLine) return;
       const newPoints = lastLine.points().concat([pos.x, pos.y]);
       lastLine.points(newPoints);
     });
   }
   stopPaint() {
-    this.k.layer.find("Line").forEach((line) => line.destroy());
-    this.k.layer.find("Transformer").forEach((t) => t.destroy());
     this.k.layer.batchDraw();
   }
   fillOutpaint() {
@@ -12515,6 +12522,35 @@ var Filter = class {
   }
 };
 
+// src/Pan.ts
+var Pan = class {
+  k;
+  constructor(k) {
+    this.k = k;
+  }
+  onMouseMove(evt) {
+    this.k.wrapper.scrollTo(
+      this.k.wrapper.scrollLeft - evt.movementX,
+      this.k.wrapper.scrollTop - evt.movementY
+    );
+  }
+  bindPan() {
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Control") {
+        this.k.container.style.cursor = "default";
+        this.k.container.style.cursor = "grab";
+        this.k.container.onmousemove = this.onMouseMove.bind(this);
+      }
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "Control") {
+        this.k.container.style.cursor = "default";
+        this.k.container.onmousemove = null;
+      }
+    });
+  }
+};
+
 // src/Kanvas.ts
 var Kanvas = class {
   initial = true;
@@ -12547,6 +12583,7 @@ var Kanvas = class {
   resize;
   paint;
   filter;
+  pan;
   // callbacks
   onchange;
   initImage() {
@@ -12573,6 +12610,7 @@ var Kanvas = class {
     this.group = this.selectedLayer === "image" ? this.imageGroup : this.maskGroup;
     if (this.controls) this.controls.style.display = "none";
     if (this.helpers) this.helpers.bindStage();
+    if (this.pan) this.pan.bindPan();
   }
   constructor(containerId) {
     this.onchange = () => {
@@ -12593,19 +12631,23 @@ var Kanvas = class {
     this.upload = new Upload(this);
     this.paint = new Paint(this);
     this.filter = new Filter(this);
+    this.pan = new Pan(this);
     if (this.initial) this.helpers.kanvasLog(`konva=${lib_default.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`);
     this.controls = document.getElementById(`${this.containerId}-active-controls`);
     this.initial = false;
     this.helpers.bindEvents();
     this.helpers.bindStage();
     this.toolbar.bindControls();
+    this.pan.bindPan();
     const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
     resizeObserver.observe(this.wrapper);
   }
   async selectNode(node) {
     this.selected = node;
     const nodeType = this.selected.getClassName();
-    this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
+    if (nodeType === "Image") this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
+    else if (nodeType === "Line") this.helpers.showMessage(`Selected: ${nodeType} points=${this.selected.points().length / 2}`);
+    else this.helpers.showMessage(`Selected: ${nodeType}`);
   }
   async removeNode(node) {
     if (!node) return;

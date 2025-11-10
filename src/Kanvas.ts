@@ -6,6 +6,7 @@ import Upload from './Upload';
 import Resize from './Resize';
 import Paint from './Paint';
 import Filter from './Filters';
+import Pan from './Pan';
 
 export default class Kanvas {
   initial: boolean = true;
@@ -25,7 +26,7 @@ export default class Kanvas {
   selected!: Konva.Node;
   // modes
   selectedLayer: 'image' | 'mask' = 'image';
-  imageMode: 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' | 'outpaint' = 'upload';
+  imageMode: 'none' | 'upload' | 'resize' | 'crop' | 'paint' | 'filters' | 'text' | 'outpaint' = 'upload';
   // variables
   opacity: number = 1;
   // class extensions
@@ -36,6 +37,7 @@ export default class Kanvas {
   resize: Resize;
   paint: Paint;
   filter: Filter;
+  pan: Pan;
   // callbacks
   onchange: () => void;
 
@@ -66,6 +68,7 @@ export default class Kanvas {
     this.group = this.selectedLayer === 'image' ? this.imageGroup : this.maskGroup;
     if (this.controls) this.controls.style.display = 'none';
     if (this.helpers) this.helpers.bindStage();
+    if (this.pan) this.pan.bindPan();
   }
 
   constructor(containerId: string) {
@@ -88,6 +91,7 @@ export default class Kanvas {
     this.upload = new Upload(this);
     this.paint = new Paint(this);
     this.filter = new Filter(this);
+    this.pan = new Pan(this);
 
     // log first init
     if (this.initial) this.helpers.kanvasLog(`konva=${Konva.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`);
@@ -98,6 +102,7 @@ export default class Kanvas {
     this.helpers.bindEvents();
     this.helpers.bindStage();
     this.toolbar.bindControls();
+    this.pan.bindPan();
 
     // initial size
     const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
@@ -107,7 +112,9 @@ export default class Kanvas {
   async selectNode(node: Konva.Node) {
     this.selected = node;
     const nodeType = this.selected.getClassName();
-    this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
+    if (nodeType === 'Image') this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
+    else if (nodeType === 'Line') this.helpers.showMessage(`Selected: ${nodeType} points=${(this.selected as Konva.Line).points().length / 2}`);
+    else this.helpers.showMessage(`Selected: ${nodeType}`);
   }
 
   async removeNode(node: Konva.Node) {
