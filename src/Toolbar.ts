@@ -23,7 +23,7 @@ export default class Toolbar {
         </span>
 
         <span class="kanvas-separator"> | </span>
-        <span class="kanvas-button" title="Reset actions and refresh vierw" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
+        <span class="kanvas-button" title="Reset actions and refresh vier" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
         <span class="kanvas-button" title="Move or resize currently selected image" id="${this.k.containerId}-button-resize">\udb81\ude55</span>
         <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\udb80\udd9e</span>
         <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uf1fc</span>
@@ -213,6 +213,7 @@ export default class Toolbar {
     document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      document.getElementById(`${this.k.containerId}-button-settings`)?.classList.toggle('active');
       this.k.settings.showSettings();
     });
     document.getElementById(`${this.k.containerId}-button-info`)?.addEventListener('click', async (e) => {

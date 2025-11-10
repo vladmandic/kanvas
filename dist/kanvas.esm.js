@@ -11639,7 +11639,7 @@ var Toolbar = class {
         </span>
 
         <span class="kanvas-separator"> | </span>
-        <span class="kanvas-button" title="Reset actions and refresh vierw" id="${this.k.containerId}-button-refresh">\u{F19FE}</span>
+        <span class="kanvas-button" title="Reset actions and refresh vier" id="${this.k.containerId}-button-refresh">\u{F19FE}</span>
         <span class="kanvas-button" title="Move or resize currently selected image" id="${this.k.containerId}-button-resize">\u{F0655}</span>
         <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\u{F019E}</span>
         <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uF1FC</span>
@@ -11818,6 +11818,7 @@ var Toolbar = class {
     document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      document.getElementById(`${this.k.containerId}-button-settings`)?.classList.toggle("active");
       this.k.settings.showSettings();
     });
     document.getElementById(`${this.k.containerId}-button-info`)?.addEventListener("click", async (e) => {
@@ -12317,6 +12318,7 @@ var Paint = class {
     this.isPainting = true;
     let lastLine;
     this.k.stage.on("mousedown touchstart", () => {
+      console.log("HERE", this.k.imageMode, this.isPainting);
       if (this.k.imageMode !== "paint") {
         this.isPainting = false;
         return;
@@ -12343,8 +12345,8 @@ var Paint = class {
     });
     this.k.stage.on("mouseup touchend", () => {
       if (this.isPainting) {
-        this.k.imageMode = "none";
         this.isPainting = false;
+        lastLine = null;
       }
     });
     this.k.stage.on("mousemove touchmove", (e) => {
@@ -12358,6 +12360,7 @@ var Paint = class {
     });
   }
   stopPaint() {
+    this.isPainting = false;
     this.k.layer.batchDraw();
   }
   fillOutpaint() {
@@ -12401,6 +12404,7 @@ var Paint = class {
     const images = this.k.stage.find("Image");
     for (const image of images) {
       if (image.name() === "fill") continue;
+      image.cache();
       const imageRect = new lib_default.Rect({
         x: image.x() - this.outpaintExpand / 2,
         y: image.y() - this.outpaintExpand / 2,

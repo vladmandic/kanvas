@@ -35,6 +35,7 @@ export default class Paint {
     let lastLine;
 
     this.k.stage.on('mousedown touchstart', () => {
+      console.log('HERE', this.k.imageMode, this.isPainting);
       if (this.k.imageMode !== 'paint') {
         this.isPainting = false;
         return;
@@ -60,8 +61,8 @@ export default class Paint {
 
     this.k.stage.on('mouseup touchend', () => {
       if (this.isPainting) {
-        this.k.imageMode = 'none';
         this.isPainting = false;
+        lastLine = null;
       }
     });
 
@@ -79,6 +80,7 @@ export default class Paint {
   stopPaint() {
     // this.k.layer.find('Line').forEach((line) => line.destroy());
     // this.k.layer.find('Transformer').forEach((t) => t.destroy());
+    this.isPainting = false;
     this.k.layer.batchDraw();
   }
 
@@ -124,6 +126,7 @@ export default class Paint {
     const images = this.k.stage.find('Image');
     for (const image of images) {
       if (image.name() === 'fill') continue;
+      image.cache();
       const imageRect = new Konva.Rect({
         x: image.x() - (this.outpaintExpand / 2),
         y: image.y() - (this.outpaintExpand / 2),
