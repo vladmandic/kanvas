@@ -12528,10 +12528,12 @@ var Filter = class {
 // src/Pan.ts
 var Pan = class {
   k;
+  moving = false;
   constructor(k) {
     this.k = k;
   }
   onMouseMove(evt) {
+    if (!this.moving) return;
     this.k.wrapper.scrollTo(
       this.k.wrapper.scrollLeft - evt.movementX,
       this.k.wrapper.scrollTop - evt.movementY
@@ -12542,12 +12544,14 @@ var Pan = class {
       if (e.key === "Control") {
         this.k.container.style.cursor = "default";
         this.k.container.style.cursor = "grab";
+        this.moving = true;
         this.k.container.onmousemove = this.onMouseMove.bind(this);
       }
     });
     window.addEventListener("keyup", (e) => {
       if (e.key === "Control") {
         this.k.container.style.cursor = "default";
+        this.moving = false;
         this.k.container.onmousemove = null;
       }
     });
