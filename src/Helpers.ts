@@ -41,7 +41,7 @@ export default class Helpers {
       if (e.evt.button === 2) return; // right click
       this.k.upload.uploadFile();
     });
-    this.k.stage.on('dblclick dbltap', () => this.k.resize.resizeStage(this.k.group));
+    this.k.stage.on('dblclick dbltap', () => this.k.resize.resizeStageToFit(this.k.group));
     this.k.stage.on('wheel', (e) => {
       e.evt.preventDefault();
       const scale = e.evt.deltaY > 0 ? this.k.stage.scaleX() / 1.05 : this.k.stage.scaleX() * 1.05;

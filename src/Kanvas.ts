@@ -78,7 +78,7 @@ export default class Kanvas {
     this.wrapper.className = 'kanvas-wrapper';
     this.wrapper.innerHTML = `
       <div id="${this.containerId}-toolbar"></div>
-      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto; width: 100%; height: 100%;"></div>
+      <div class="kanvas" id="${this.containerId}-kanvas"></div>
     `;
     this.container = document.getElementById(`${this.containerId}-kanvas`) as HTMLElement;
     this.initialize();

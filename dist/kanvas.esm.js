@@ -11469,29 +11469,32 @@ var lib_default = Konva3;
 // src/Settings.ts
 var html = `
   <h3>Kanvas Settings</h3>
-  <label for="toolbar-size">Allow toolbar Hide:</label>
-  <input type="checkbox" id="kanvas-settings-allow-hide" name="kanvas-settings-allow-hide" checked/>
-  <br/>
   <label for="toolbar-size">Toolbar size (px):</label>
   <input type="number" id="kanvas-settings-size" name="kanvas-settings-size" min="8" max="48" value="18"/>
   <br/>
   <label for="toolbar-color">Toolbar color (hue):</label>
   <input type="number" id="kanvas-settings-color" name="kanvas-settings-color" min="0" max="360" value="190"/>
   <br/>
+  <label for="toolbar-size">Allow toolbar Hide:</label>
+  <input type="checkbox" id="kanvas-settings-allow-hide" name="kanvas-settings-allow-hide" checked/>
+  <br/>
   <label for="zoom-lock">Zoom lock:</label>
   <input type="checkbox" id="kanvas-settings-zoom-lock" name="kanvas-settings-zoom-lock"/>
   <br/>
-  <label for="message-show">Show messages:</label>
-  <input type="checkbox" id="kanvas-settings-message-show" name="kanvas-settings-message-show" checked/>
-  <br/>
-  <label for="message-timeout">Message timeout (ms):</label>
-  <input type="number" id="kanvas-settings-message-timeout" name="kanvas-settings-message-timeout" min="1000" max="20000" value="5000"/>
+  <label for="max-size">Max canvas size (px):</label>
+  <input type="number" id="kanvas-settings-max-size" name="kanvas-settings-max-size" min="256" max="8192" value="2048"/>
   <br/>
   <label for="brush-size">Brush size (px):</label>
   <input type="number" id="kanvas-settings-brush-size" name="kanvas-settings-brush-size" min="1" max="100" value="20"/>
   <br/>
   <label for="outpaint-fill">Outpaint fill:</label>
   <input type="checkbox" id="kanvas-settings-outpaint-fill" name="kanvas-settings-outpaint-fill"/>
+  <br/>
+  <label for="message-show">Show messages:</label>
+  <input type="checkbox" id="kanvas-settings-message-show" name="kanvas-settings-message-show" checked/>
+  <br/>
+  <label for="message-timeout">Message timeout (ms):</label>
+  <input type="number" id="kanvas-settings-message-timeout" name="kanvas-settings-message-timeout" min="1000" max="20000" value="5000"/>
 `;
 var Settings = class {
   k;
@@ -11503,6 +11506,7 @@ var Settings = class {
     brushSize: 20,
     outpaintFill: false,
     zoomLock: false,
+    maxSize: 2048,
     messageShow: true,
     messageTimeout: 5e3
   };
@@ -11545,6 +11549,7 @@ var Settings = class {
       document.getElementById("kanvas-settings-message-timeout").value = String(this.settings.messageTimeout);
       document.getElementById("kanvas-settings-brush-size").value = String(this.settings.brushSize);
       document.getElementById("kanvas-settings-outpaint-fill").checked = this.settings.outpaintFill;
+      document.getElementById("kanvas-settings-max-size").value = String(this.settings.maxSize);
     } else {
       this.settings.allowHide = document.getElementById("kanvas-settings-allow-hide").checked;
       this.settings.toolbarSize = parseInt(document.getElementById("kanvas-settings-size").value, 10);
@@ -11554,6 +11559,7 @@ var Settings = class {
       this.settings.messageTimeout = parseInt(document.getElementById("kanvas-settings-message-timeout").value, 10);
       this.settings.brushSize = parseInt(document.getElementById("kanvas-settings-brush-size").value, 10);
       this.settings.outpaintFill = document.getElementById("kanvas-settings-outpaint-fill").checked;
+      this.settings.maxSize = parseInt(document.getElementById("kanvas-settings-max-size").value, 10);
       this.saveSettings();
     }
     this.el.style.display = isVisible ? "none" : "block";
@@ -11599,7 +11605,7 @@ var Helpers = class {
       if (e.evt.button === 2) return;
       this.k.upload.uploadFile();
     });
-    this.k.stage.on("dblclick dbltap", () => this.k.resize.resizeStage(this.k.group));
+    this.k.stage.on("dblclick dbltap", () => this.k.resize.resizeStageToFit(this.k.group));
     this.k.stage.on("wheel", (e) => {
       e.evt.preventDefault();
       const scale = e.evt.deltaY > 0 ? this.k.stage.scaleX() / 1.05 : this.k.stage.scaleX() * 1.05;
@@ -11639,7 +11645,7 @@ var Toolbar = class {
         </span>
 
         <span class="kanvas-separator"> | </span>
-        <span class="kanvas-button" title="Reset actions and refresh vier" id="${this.k.containerId}-button-refresh">\u{F19FE}</span>
+        <span class="kanvas-button" title="Reset actions and refresh view" id="${this.k.containerId}-button-refresh">\u{F19FE}</span>
         <span class="kanvas-button" title="Move or resize currently selected image" id="${this.k.containerId}-button-resize">\u{F0655}</span>
         <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\u{F019E}</span>
         <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uF1FC</span>
@@ -11692,7 +11698,7 @@ var Toolbar = class {
             <option value="threshold">threshold</option>
           </select>
         </span>
-        
+
         <span id="${this.k.containerId}-text-controls" class="kanvas-section">
           <span class="kanvas-separator"> | </span>
           <input type="text" id="${this.k.containerId}-text-font" class="kanvas-textbox" value="Calibri" title="Text font" />
@@ -11706,10 +11712,18 @@ var Toolbar = class {
       </span>
 
       <span class="kanvas-separator"> | </span>
+      <span class="kanvas-size">
+        <span class="kanvas-button" title="Change stage width and height" id="${this.k.containerId}-button-size">\u{F0A68}</span>
+        <label for="${this.k.containerId}-image-width"></label>
+        <input type="number" id="${this.k.containerId}-image-width" class="kanvas-sizebox" min="256" max="8192" value="1024" title="Stage width" />
+        <label for="${this.k.containerId}-image-width"></label>
+        <input type="number" id="${this.k.containerId}-image-height" class="kanvas-sizebox" min="256" max="8192" value="1024" title="Stage height" />
+      </span>
+
+      <span class="kanvas-separator"> | </span>
       <span class="kanvas-button" title="Settings" id="${this.k.containerId}-button-settings">\uEB52</span>
       <span class="kanvas-button" title="Information" id="${this.k.containerId}-button-info">\u{F02FD}</span>
-      <span class="kanvas-separator"> | </span>
-      <span class="kanvas-text" id="${this.k.containerId}-size"></span>
+
       <span class="kanvas-text" id="${this.k.containerId}-message"></span>
     `;
   }
@@ -11792,21 +11806,30 @@ var Toolbar = class {
       this.k.stopActions();
       this.resetButtons();
     });
+    const resizeFromInputs = async (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const widthInput = document.getElementById(`${this.k.containerId}-image-width`);
+      const heightInput = document.getElementById(`${this.k.containerId}-image-height`);
+      const width = parseInt(widthInput.value, 10);
+      const height = parseInt(heightInput.value, 10);
+      this.k.resize.resizeStage(width, height);
+    };
+    document.getElementById(`${this.k.containerId}-image-width`)?.addEventListener("input", async (e) => resizeFromInputs(e));
+    document.getElementById(`${this.k.containerId}-image-height`)?.addEventListener("input", async (e) => resizeFromInputs(e));
     document.getElementById(`${this.k.containerId}-button-zoomin`)?.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() * 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
+      this.k.helpers.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
     document.getElementById(`${this.k.containerId}-button-zoomout`)?.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() / 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
+      this.k.helpers.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
     document.getElementById(`${this.k.containerId}-button-zoomlock`)?.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -11976,7 +11999,7 @@ var Upload = class {
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });
-          this.k.resize.resizeStage(image);
+          this.k.resize.resizeStageToFit(image);
         }
         this.k.group.add(image);
         if (this.k.selectedLayer === "mask") {
@@ -11984,11 +12007,11 @@ var Upload = class {
           image.filters([lib_default.Filters.Grayscale]);
           image.opacity(0.5);
         }
-        image.on("transform", () => this.k.resize.resizeStage(image));
-        image.on("dragmove", () => this.k.resize.resizeStage(image));
+        image.on("transform", () => this.k.resize.resizeStageToFit(image));
+        image.on("dragmove", () => this.k.resize.resizeStageToFit(image));
         image.on("click", () => this.k.selectNode(image));
         this.k.stage.batchDraw();
-        this.k.resize.resizeStage(image);
+        this.k.resize.resizeStageToFit(image);
         if (shouldNotify) this.k.onchange();
       };
       dropImage.onerror = () => URL.revokeObjectURL(url);
@@ -12061,6 +12084,14 @@ var Resize = class {
     clearTimeout(this.debounceFit);
     this.debounceFit = window.setTimeout(() => this._fitStage(el), this.debounce);
   }
+  async updateSizeInputs() {
+    const widthInput = document.getElementById(`${this.k.containerId}-image-width`);
+    const heightInput = document.getElementById(`${this.k.containerId}-image-height`);
+    if (widthInput && heightInput) {
+      widthInput.value = String(Math.round(this.k.stage.width()));
+      heightInput.value = String(Math.round(this.k.stage.height()));
+    }
+  }
   async _resizeStage(el) {
     const box = el.getClientRect();
     const width = this.k.stage.width();
@@ -12083,14 +12114,30 @@ var Resize = class {
       this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `${Math.round(this.k.stage.width())} x ${Math.round(this.k.stage.height())}`;
+      this.updateSizeInputs();
       this.fitStage(this.k.container);
     }
+    if (this.k.stage.width() > this.k.settings.settings.maxSize || this.k.stage.height() > this.k.settings.settings.maxSize) {
+      const rescale = Math.min(this.k.settings.settings.maxSize / this.k.stage.width(), this.k.settings.settings.maxSize / this.k.stage.height());
+      const x = Math.round(this.k.stage.width() * rescale);
+      const y = Math.round(this.k.stage.height() * rescale);
+      this.k.stage.size({ width: x, height: y });
+      this.k.helpers.showMessage(`Stage: width=${width} height=${height} max=${this.k.settings.settings.maxSize}`);
+      this.updateSizeInputs();
+    }
   }
-  async resizeStage(el) {
+  async resizeStageToFit(el) {
     clearTimeout(this.debounceResize);
     this.debounceResize = window.setTimeout(() => this._resizeStage(el), this.debounce);
+  }
+  async resizeStage(width, height) {
+    this.k.stage.width(width);
+    this.k.stage.height(height);
+    this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
+    this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
+    this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
+    this.k.helpers.showMessage(`Stage width=${width} height=${height} resized`);
+    this.k.resize.fitStage(this.k.container);
   }
   startResize() {
     this.k.stopActions();
@@ -12108,8 +12155,8 @@ var Resize = class {
         anchorCornerRadius: 2
       });
       this.k.layer.add(transformer);
-      image.on("transform", () => this.resizeStage(image));
-      image.on("dragmove", () => this.resizeStage(image));
+      image.on("transform", () => this.resizeStageToFit(image));
+      image.on("dragmove", () => this.resizeStageToFit(image));
     });
   }
   stopResize() {
@@ -12627,7 +12674,7 @@ var Kanvas = class {
     this.wrapper.className = "kanvas-wrapper";
     this.wrapper.innerHTML = `
       <div id="${this.containerId}-toolbar"></div>
-      <div class="kanvas" id="${this.containerId}-kanvas" style="margin: auto; width: 100%; height: 100%;"></div>
+      <div class="kanvas" id="${this.containerId}-kanvas"></div>
     `;
     this.container = document.getElementById(`${this.containerId}-kanvas`);
     this.initialize();

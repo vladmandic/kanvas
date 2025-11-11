@@ -37,7 +37,7 @@ export default class Upload {
         URL.revokeObjectURL(url);
         if (this.k.helpers.isEmpty()) {
           this.k.stage.size({ width: 0, height: 0 });
-          this.k.resize.resizeStage(image);
+          this.k.resize.resizeStageToFit(image);
         }
         this.k.group.add(image);
         if (this.k.selectedLayer === 'mask') {
@@ -45,11 +45,11 @@ export default class Upload {
           image.filters([Konva.Filters.Grayscale]);
           image.opacity(0.5);
         }
-        image.on('transform', () => this.k.resize.resizeStage(image));
-        image.on('dragmove', () => this.k.resize.resizeStage(image));
+        image.on('transform', () => this.k.resize.resizeStageToFit(image));
+        image.on('dragmove', () => this.k.resize.resizeStageToFit(image));
         image.on('click', () => this.k.selectNode(image));
         this.k.stage.batchDraw();
-        this.k.resize.resizeStage(image);
+        this.k.resize.resizeStageToFit(image);
         if (shouldNotify) this.k.onchange();
       };
       dropImage.onerror = () => URL.revokeObjectURL(url);

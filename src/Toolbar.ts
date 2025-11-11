@@ -23,7 +23,7 @@ export default class Toolbar {
         </span>
 
         <span class="kanvas-separator"> | </span>
-        <span class="kanvas-button" title="Reset actions and refresh vier" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
+        <span class="kanvas-button" title="Reset actions and refresh view" id="${this.k.containerId}-button-refresh">\udb86\uddfe</span>
         <span class="kanvas-button" title="Move or resize currently selected image" id="${this.k.containerId}-button-resize">\udb81\ude55</span>
         <span class="kanvas-button" title="Crop currently selected image" id="${this.k.containerId}-button-crop">\udb80\udd9e</span>
         <span class="kanvas-button" title="Free Paint in currently selected layer" id="${this.k.containerId}-button-paint">\uf1fc</span>
@@ -76,7 +76,7 @@ export default class Toolbar {
             <option value="threshold">threshold</option>
           </select>
         </span>
-        
+
         <span id="${this.k.containerId}-text-controls" class="kanvas-section">
           <span class="kanvas-separator"> | </span>
           <input type="text" id="${this.k.containerId}-text-font" class="kanvas-textbox" value="Calibri" title="Text font" />
@@ -90,10 +90,18 @@ export default class Toolbar {
       </span>
 
       <span class="kanvas-separator"> | </span>
+      <span class="kanvas-size">
+        <span class="kanvas-button" title="Change stage width and height" id="${this.k.containerId}-button-size">\udb82\ude68</span>
+        <label for="${this.k.containerId}-image-width"></label>
+        <input type="number" id="${this.k.containerId}-image-width" class="kanvas-sizebox" min="256" max="8192" value="1024" title="Stage width" />
+        <label for="${this.k.containerId}-image-width"></label>
+        <input type="number" id="${this.k.containerId}-image-height" class="kanvas-sizebox" min="256" max="8192" value="1024" title="Stage height" />
+      </span>
+
+      <span class="kanvas-separator"> | </span>
       <span class="kanvas-button" title="Settings" id="${this.k.containerId}-button-settings">\ueb52</span>
       <span class="kanvas-button" title="Information" id="${this.k.containerId}-button-info">\udb80\udefd</span>
-      <span class="kanvas-separator"> | </span>
-      <span class="kanvas-text" id="${this.k.containerId}-size"></span>
+
       <span class="kanvas-text" id="${this.k.containerId}-message"></span>
     `;
   }
@@ -185,22 +193,33 @@ export default class Toolbar {
       this.resetButtons();
     });
 
+    // group: size inputs
+    const resizeFromInputs = async (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const widthInput = document.getElementById(`${this.k.containerId}-image-width`) as HTMLInputElement;
+      const heightInput = document.getElementById(`${this.k.containerId}-image-height`) as HTMLInputElement;
+      const width = parseInt((widthInput as HTMLInputElement).value, 10);
+      const height = parseInt((heightInput as HTMLInputElement).value, 10);
+      this.k.resize.resizeStage(width, height);
+    };
+    document.getElementById(`${this.k.containerId}-image-width`)?.addEventListener('input', async (e) => resizeFromInputs(e));
+    document.getElementById(`${this.k.containerId}-image-height`)?.addEventListener('input', async (e) => resizeFromInputs(e));
+
     // group: zoomin,zoomout
     document.getElementById(`${this.k.containerId}-button-zoomin`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() * 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
+      this.k.helpers.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
     document.getElementById(`${this.k.containerId}-button-zoomout`)?.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const scale = this.k.stage.scaleX() / 1.1;
       this.k.stage.scale({ x: scale, y: scale });
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `Scale: ${Math.round(scale * 100)}%`;
+      this.k.helpers.showMessage(`Scale: ${Math.round(scale * 100)}%`);
     });
     document.getElementById(`${this.k.containerId}-button-zoomlock`)?.addEventListener('click', async (e) => {
       e.preventDefault();

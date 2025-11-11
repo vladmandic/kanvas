@@ -50,10 +50,20 @@ export default class Resize {
     this.debounceFit = window.setTimeout(() => this._fitStage(el), this.debounce);
   }
 
+  async updateSizeInputs() {
+    const widthInput = document.getElementById(`${this.k.containerId}-image-width`) as HTMLInputElement;
+    const heightInput = document.getElementById(`${this.k.containerId}-image-height`) as HTMLInputElement;
+    if (widthInput && heightInput) {
+      widthInput.value = String(Math.round(this.k.stage.width()));
+      heightInput.value = String(Math.round(this.k.stage.height()));
+    }
+  }
+
   async _resizeStage(el: Konva.Image | Konva.Group) {
     const box = el.getClientRect();
     const width = this.k.stage.width();
     const height = this.k.stage.height();
+    // resizing stage
     if (el === this.k.group) {
       if (box.x > 0) this.k.stage.width(width - box.x);
       if (box.y > 0) this.k.stage.height(height - box.y);
@@ -66,21 +76,40 @@ export default class Resize {
       if (box.y + box.height > this.k.stage.height()) this.k.stage.height(box.y + box.height);
       this.k.helpers.showMessage(`Resize image: x=${Math.round(box.x)} y=${Math.round(box.y)} width=${Math.round(box.width)} height=${Math.round(box.height)}`);
     }
+    // resizing layers and toolbar
     if (width !== this.k.stage.width() || height !== this.k.stage.height()) {
       const primary = document.querySelector('.konvajs-content canvas:first-of-type') as HTMLCanvasElement;
       if (primary) primary.style.background = 'black';
       this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
-      const sizeEl = document.getElementById(`${this.k.containerId}-size`);
-      if (sizeEl) sizeEl.textContent = `${Math.round(this.k.stage.width())} x ${Math.round(this.k.stage.height())}`;
+      this.updateSizeInputs();
       this.fitStage(this.k.container);
+    }
+    // limit max size
+    if ((this.k.stage.width() > this.k.settings.settings.maxSize) || (this.k.stage.height() > this.k.settings.settings.maxSize)) {
+      const rescale = Math.min((this.k.settings.settings.maxSize / this.k.stage.width()), (this.k.settings.settings.maxSize / this.k.stage.height()));
+      const x = Math.round(this.k.stage.width() * rescale);
+      const y = Math.round(this.k.stage.height() * rescale);
+      this.k.stage.size({ width: x, height: y });
+      this.k.helpers.showMessage(`Stage: width=${width} height=${height} max=${this.k.settings.settings.maxSize}`);
+      this.updateSizeInputs();
     }
   }
 
-  async resizeStage(el: Konva.Image | Konva.Group) {
+  async resizeStageToFit(el: Konva.Image | Konva.Group) {
     clearTimeout(this.debounceResize);
     this.debounceResize = window.setTimeout(() => this._resizeStage(el), this.debounce);
+  }
+
+  async resizeStage(width: number, height: number) {
+    this.k.stage.width(width);
+    this.k.stage.height(height);
+    this.k.imageLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
+    this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
+    this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
+    this.k.helpers.showMessage(`Stage width=${width} height=${height} resized`);
+    this.k.resize.fitStage(this.k.container);
   }
 
   startResize() {
@@ -99,8 +128,8 @@ export default class Resize {
         anchorCornerRadius: 2,
       });
       this.k.layer.add(transformer);
-      image.on('transform', () => this.resizeStage(image as Konva.Image));
-      image.on('dragmove', () => this.resizeStage(image as Konva.Image));
+      image.on('transform', () => this.resizeStageToFit(image as Konva.Image));
+      image.on('dragmove', () => this.resizeStageToFit(image as Konva.Image));
     });
   }
 
