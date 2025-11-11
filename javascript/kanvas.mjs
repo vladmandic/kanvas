@@ -5,8 +5,17 @@ const kanvasElement = 'kanvas-container';
 const kanvasChangeButton = 'kanvas-change-button';
 
 async function initKanvas() {
-  while (!document.getElementById(kanvasElement)) await new Promise((resolve) => setTimeout(resolve, 100)); // eslint-disable-line no-promise-executor-return
-  const el = document.getElementById(kanvasElement);
+  if (typeof log !== 'undefined') log(`Kanvas: element=${kanvasElement}`); // eslint-disable-line no-undef
+  const t0 = performance.now();
+  let el = document.getElementById(kanvasElement);
+  while (!el) {
+    if (performance.now() - t0 > 20000) {
+      console.error('Kanvas: timeout', kanvasElement); // eslint-disable-line no-console
+      return;
+    }
+    el = document.getElementById(kanvasElement);
+    await new Promise((resolve) => setTimeout(resolve, 50)); // eslint-disable-line no-promise-executor-return
+  }
   el.innerHTML = '';
   kanvasInstance = new Kanvas(kanvasElement); // eslint-disable-line no-undef
   const btn = document.getElementById(kanvasChangeButton);
