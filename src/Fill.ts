@@ -45,16 +45,14 @@ export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): 
   const leftBuf = new Uint8ClampedArray(total * 4);
   const rightBuf = new Uint8ClampedArray(total * 4);
 
-  // helper to write color into output buffer at pixel index p (byte offset)
-  const writePixel = (buf: Uint8ClampedArray, p: number, r: number, g: number, b: number, a: number) => {
-    buf[p] = r; // eslint-disable-line no-param-reassign
+  const writePixel = (buf: Uint8ClampedArray, p: number, r: number, g: number, b: number, a: number) => { // helper to write color into output buffer at pixel index p (byte offset)
+    buf[p + 0] = r; // eslint-disable-line no-param-reassign
     buf[p + 1] = g; // eslint-disable-line no-param-reassign
     buf[p + 2] = b; // eslint-disable-line no-param-reassign
     buf[p + 3] = a; // eslint-disable-line no-param-reassign
   };
 
-  // TOP: scan columns top->bottom, propagate last seen non-transparent color downward
-  for (let x = 0; x < w; ++x) {
+  for (let x = 0; x <= w; ++x) { // scan columns top->bottom, propagate last seen non-transparent color downward
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
@@ -63,28 +61,25 @@ export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): 
     for (let y = 0; y < h; ++y) {
       const idx = (y * w + x) * 4;
       const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        // source pixel: update last, but we DO NOT copy source into outputs (leave them transparent)
+      if (a > alphaThreshold) { // source pixel: update last, but we DO NOT copy source into outputs (leave them transparent)
         lastR = sdata[idx];
         lastG = sdata[idx + 1];
         lastB = sdata[idx + 2];
         lastA = a;
         haveLast = true;
       } else if (haveLast) {
-        // fill this transparent pixel with last seen color
-        writePixel(topBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
+        writePixel(topBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255); // fill this transparent pixel with last seen color
       }
     }
   }
 
-  // BOTTOM: scan columns bottom->top, propagate last seen non-transparent upward
-  for (let x = 0; x < w; ++x) {
+  for (let x = 0; x <= w; ++x) { // scan columns bottom->top, propagate last seen non-transparent upward
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
     let lastA = 0;
     let haveLast = false;
-    for (let y = h - 1; y >= 0; --y) {
+    for (let y = h; y >= 0; --y) {
       const idx = (y * w + x) * 4;
       const a = sdata[idx + 3];
       if (a > alphaThreshold) {
@@ -99,8 +94,7 @@ export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): 
     }
   }
 
-  // LEFT: scan rows left->right, propagate last seen non-transparent to the right
-  for (let y = 0; y < h; ++y) {
+  for (let y = 0; y <= h; ++y) { // scan rows left->right, propagate last seen non-transparent to the right
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
@@ -122,15 +116,14 @@ export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): 
     }
   }
 
-  // RIGHT: scan rows right->left, propagate last seen non-transparent to the left
-  for (let y = 0; y < h; ++y) {
+  for (let y = 0; y <= h; ++y) { // scan rows right->left, propagate last seen non-transparent to the left
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
     let lastA = 0;
     let haveLast = false;
     const rowBase = y * w;
-    for (let x = w - 1; x >= 0; --x) {
+    for (let x = w; x >= 0; --x) {
       const idx = (rowBase + x) * 4;
       const a = sdata[idx + 3];
       if (a > alphaThreshold) {
@@ -152,8 +145,15 @@ export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): 
     out.height = h;
     const oc = out.getContext('2d');
     if (!oc) return out;
+    const tmp = document.createElement('canvas'); // temporary canvas to create ImageData
+    tmp.width = w;
+    tmp.height = h;
+    const tc = tmp.getContext('2d');
+    if (!tc) return out;
     const img = new ImageData(buf, w, h);
-    oc.putImageData(img, 0, 0);
+    tc.putImageData(img, 0, 0);
+    // oc.filter = 'blur(4px)';
+    oc.drawImage(tmp, 0, 0);
     return out;
   };
 

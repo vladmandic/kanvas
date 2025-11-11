@@ -7,6 +7,7 @@ export default class Resize {
   debounce: number = 200;
   debounceFit: number = 0;
   debounceResize: number = 0;
+  scale: number = 1;
   constructor(k: Kanvas) {
     this.k = k;
   }
@@ -17,7 +18,6 @@ export default class Resize {
 
   async _fitStage(el: HTMLElement) {
     if (!el || el.clientWidth === 0 || el.clientHeight === 0) return;
-    let scale = 1;
     if (this.k.helpers.isEmpty()) {
       this.k.wrapper.style.overflow = 'hidden';
     }
@@ -25,24 +25,24 @@ export default class Resize {
       this.k.wrapper.style.overflow = 'auto';
     } else {
       this.k.wrapper.style.overflow = 'hidden';
-      scale = Math.min(
+      this.scale = Math.min(
         (el.clientWidth - 0) / this.k.stage.width(),
         (el.clientHeight - 32) / this.k.stage.height(), // adjust for toolbar
       );
     }
     el.querySelectorAll('canvas').forEach((canvas) => {
-      (canvas as HTMLCanvasElement).style.width = `${this.k.stage.width() * scale}px`; // eslint-disable-line no-param-reassign
-      (canvas as HTMLCanvasElement).style.height = `${this.k.stage.height() * scale}px`; // eslint-disable-line no-param-reassign
+      (canvas as HTMLCanvasElement).style.width = `${this.k.stage.width() * this.scale}px`; // eslint-disable-line no-param-reassign
+      (canvas as HTMLCanvasElement).style.height = `${this.k.stage.height() * this.scale}px`; // eslint-disable-line no-param-reassign
     });
     const kanvasEl = document.getElementById(`${this.k.containerId}-kanvas`);
     if (kanvasEl && !this.k.helpers.isEmpty()) {
-      if (el.clientWidth > this.k.stage.width() * scale) {
-        kanvasEl.style.marginLeft = `${(el.clientWidth - this.k.stage.width() * scale) / 2}px`;
+      if (el.clientWidth > this.k.stage.width() * this.scale) {
+        kanvasEl.style.marginLeft = `${(el.clientWidth - this.k.stage.width() * this.scale) / 2}px`;
       } else {
         kanvasEl.style.marginLeft = '0px';
       }
     }
-    if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(scale * 100)}%`);
+    if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(this.scale * 100)}%`);
   }
 
   async fitStage(el: HTMLElement) {

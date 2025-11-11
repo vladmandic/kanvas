@@ -45,6 +45,8 @@ export default class Paint {
       const pos = this.k.stage.getPointerPosition();
       const brushColor = this.k.selectedLayer === 'image' ? this.k.paint.brushColor : hexToGrayscale(this.k.paint.brushColor);
       if (!pos) return;
+      const x = pos.x / this.k.resize.scale;
+      const y = pos.y / this.k.resize.scale;
       lastLine = new Konva.Line({
         stroke: brushColor,
         strokeWidth: 2 * this.k.paint.brushSize,
@@ -52,7 +54,7 @@ export default class Paint {
         globalCompositeOperation: this.k.paint.brushMode as CanvasRenderingContext2D['globalCompositeOperation'],
         lineCap: 'round', // round cap for smoother lines
         lineJoin: 'round',
-        points: [pos.x, pos.y, pos.x, pos.y], // add point twice, so we have some drawings even on a simple click
+        points: [x, y, x, y], // add point twice, so we have some drawings even on a simple click
       });
       lastLine.on('click', () => this.k.selectNode(lastLine));
       this.k.group.add(lastLine);
@@ -71,7 +73,9 @@ export default class Paint {
       e.evt.preventDefault();
       const pos = this.k.stage.getPointerPosition();
       if (!pos || !lastLine) return;
-      const newPoints = lastLine.points().concat([pos.x, pos.y]);
+      const x = pos.x / this.k.resize.scale;
+      const y = pos.y / this.k.resize.scale;
+      const newPoints = lastLine.points().concat([x, y]);
       lastLine.points(newPoints);
     });
   }
@@ -84,24 +88,22 @@ export default class Paint {
   }
 
   fillOutpaint() {
-    const canvas = this.k.imageLayer.toCanvas() as HTMLCanvasElement;
+    const canvas = this.k.imageLayer.toCanvas({ imageSmoothingEnabled: false }) as HTMLCanvasElement;
     const { top, bottom, left, right } = fillTransparent(canvas, 0);
     for (const fill of [top, bottom, left, right]) {
-      const imgDataUrl = fill.toDataURL();
-      const img = new Image();
-      img.src = imgDataUrl;
-      img.onload = () => {
-        const konvaImg = new Konva.Image({
-          x: 0,
-          y: 0,
-          image: img,
-          width: this.k.stage.width(),
-          height: this.k.stage.height(),
-        });
-        konvaImg.name('fill');
-        this.k.imageGroup.add(konvaImg);
-        this.k.imageLayer.batchDraw();
-      };
+      const konvaImg = new Konva.Image({
+        x: 0,
+        y: 0,
+        image: fill,
+        width: this.k.stage.width(),
+        height: this.k.stage.height(),
+      });
+      konvaImg.name('fill');
+      konvaImg.cache({ imageSmoothingEnabled: false });
+      // konvaImg.filters([Konva.Filters.Blur]);
+      // konvaImg.blurRadius(10);
+      this.k.imageGroup.add(konvaImg);
+      this.k.imageLayer.batchDraw();
     }
   }
 

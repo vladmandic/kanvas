@@ -12044,6 +12044,7 @@ var Resize = class {
   debounce = 200;
   debounceFit = 0;
   debounceResize = 0;
+  scale = 1;
   constructor(k) {
     this.k = k;
   }
@@ -12052,7 +12053,6 @@ var Resize = class {
   }
   async _fitStage(el) {
     if (!el || el.clientWidth === 0 || el.clientHeight === 0) return;
-    let scale = 1;
     if (this.k.helpers.isEmpty()) {
       this.k.wrapper.style.overflow = "hidden";
     }
@@ -12060,25 +12060,25 @@ var Resize = class {
       this.k.wrapper.style.overflow = "auto";
     } else {
       this.k.wrapper.style.overflow = "hidden";
-      scale = Math.min(
+      this.scale = Math.min(
         (el.clientWidth - 0) / this.k.stage.width(),
         (el.clientHeight - 32) / this.k.stage.height()
         // adjust for toolbar
       );
     }
     el.querySelectorAll("canvas").forEach((canvas) => {
-      canvas.style.width = `${this.k.stage.width() * scale}px`;
-      canvas.style.height = `${this.k.stage.height() * scale}px`;
+      canvas.style.width = `${this.k.stage.width() * this.scale}px`;
+      canvas.style.height = `${this.k.stage.height() * this.scale}px`;
     });
     const kanvasEl = document.getElementById(`${this.k.containerId}-kanvas`);
     if (kanvasEl && !this.k.helpers.isEmpty()) {
-      if (el.clientWidth > this.k.stage.width() * scale) {
-        kanvasEl.style.marginLeft = `${(el.clientWidth - this.k.stage.width() * scale) / 2}px`;
+      if (el.clientWidth > this.k.stage.width() * this.scale) {
+        kanvasEl.style.marginLeft = `${(el.clientWidth - this.k.stage.width() * this.scale) / 2}px`;
       } else {
         kanvasEl.style.marginLeft = "0px";
       }
     }
-    if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(scale * 100)}%`);
+    if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(this.scale * 100)}%`);
   }
   async fitStage(el) {
     clearTimeout(this.debounceFit);
@@ -12231,12 +12231,12 @@ function fillTransparent(canvas, alphaThreshold = 0) {
   const leftBuf = new Uint8ClampedArray(total * 4);
   const rightBuf = new Uint8ClampedArray(total * 4);
   const writePixel = (buf, p, r, g, b, a) => {
-    buf[p] = r;
+    buf[p + 0] = r;
     buf[p + 1] = g;
     buf[p + 2] = b;
     buf[p + 3] = a;
   };
-  for (let x = 0; x < w; ++x) {
+  for (let x = 0; x <= w; ++x) {
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
@@ -12256,13 +12256,13 @@ function fillTransparent(canvas, alphaThreshold = 0) {
       }
     }
   }
-  for (let x = 0; x < w; ++x) {
+  for (let x = 0; x <= w; ++x) {
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
     let lastA = 0;
     let haveLast = false;
-    for (let y = h - 1; y >= 0; --y) {
+    for (let y = h; y >= 0; --y) {
       const idx = (y * w + x) * 4;
       const a = sdata[idx + 3];
       if (a > alphaThreshold) {
@@ -12276,7 +12276,7 @@ function fillTransparent(canvas, alphaThreshold = 0) {
       }
     }
   }
-  for (let y = 0; y < h; ++y) {
+  for (let y = 0; y <= h; ++y) {
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
@@ -12297,14 +12297,14 @@ function fillTransparent(canvas, alphaThreshold = 0) {
       }
     }
   }
-  for (let y = 0; y < h; ++y) {
+  for (let y = 0; y <= h; ++y) {
     let lastR = 0;
     let lastG = 0;
     let lastB = 0;
     let lastA = 0;
     let haveLast = false;
     const rowBase = y * w;
-    for (let x = w - 1; x >= 0; --x) {
+    for (let x = w; x >= 0; --x) {
       const idx = (rowBase + x) * 4;
       const a = sdata[idx + 3];
       if (a > alphaThreshold) {
@@ -12324,8 +12324,14 @@ function fillTransparent(canvas, alphaThreshold = 0) {
     out.height = h;
     const oc = out.getContext("2d");
     if (!oc) return out;
+    const tmp = document.createElement("canvas");
+    tmp.width = w;
+    tmp.height = h;
+    const tc = tmp.getContext("2d");
+    if (!tc) return out;
     const img = new ImageData(buf, w, h);
-    oc.putImageData(img, 0, 0);
+    tc.putImageData(img, 0, 0);
+    oc.drawImage(tmp, 0, 0);
     return out;
   };
   const topCanvas = makeCanvasFromBuf(topBuf);
@@ -12375,6 +12381,8 @@ var Paint = class {
       const pos = this.k.stage.getPointerPosition();
       const brushColor = this.k.selectedLayer === "image" ? this.k.paint.brushColor : hexToGrayscale(this.k.paint.brushColor);
       if (!pos) return;
+      const x = pos.x / this.k.resize.scale;
+      const y = pos.y / this.k.resize.scale;
       lastLine = new lib_default.Line({
         stroke: brushColor,
         strokeWidth: 2 * this.k.paint.brushSize,
@@ -12383,7 +12391,7 @@ var Paint = class {
         lineCap: "round",
         // round cap for smoother lines
         lineJoin: "round",
-        points: [pos.x, pos.y, pos.x, pos.y]
+        points: [x, y, x, y]
         // add point twice, so we have some drawings even on a simple click
       });
       lastLine.on("click", () => this.k.selectNode(lastLine));
@@ -12401,7 +12409,9 @@ var Paint = class {
       e.evt.preventDefault();
       const pos = this.k.stage.getPointerPosition();
       if (!pos || !lastLine) return;
-      const newPoints = lastLine.points().concat([pos.x, pos.y]);
+      const x = pos.x / this.k.resize.scale;
+      const y = pos.y / this.k.resize.scale;
+      const newPoints = lastLine.points().concat([x, y]);
       lastLine.points(newPoints);
     });
   }
@@ -12410,24 +12420,20 @@ var Paint = class {
     this.k.layer.batchDraw();
   }
   fillOutpaint() {
-    const canvas = this.k.imageLayer.toCanvas();
+    const canvas = this.k.imageLayer.toCanvas({ imageSmoothingEnabled: false });
     const { top, bottom, left, right } = fillTransparent(canvas, 0);
     for (const fill of [top, bottom, left, right]) {
-      const imgDataUrl = fill.toDataURL();
-      const img = new Image();
-      img.src = imgDataUrl;
-      img.onload = () => {
-        const konvaImg = new lib_default.Image({
-          x: 0,
-          y: 0,
-          image: img,
-          width: this.k.stage.width(),
-          height: this.k.stage.height()
-        });
-        konvaImg.name("fill");
-        this.k.imageGroup.add(konvaImg);
-        this.k.imageLayer.batchDraw();
-      };
+      const konvaImg = new lib_default.Image({
+        x: 0,
+        y: 0,
+        image: fill,
+        width: this.k.stage.width(),
+        height: this.k.stage.height()
+      });
+      konvaImg.name("fill");
+      konvaImg.cache({ imageSmoothingEnabled: false });
+      this.k.imageGroup.add(konvaImg);
+      this.k.imageLayer.batchDraw();
     }
   }
   startOutpaint() {
@@ -12698,6 +12704,7 @@ var Kanvas = class {
   }
   async selectNode(node) {
     this.selected = node;
+    if (!this.selected) return;
     const nodeType = this.selected.getClassName();
     if (nodeType === "Image") this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else if (nodeType === "Line") this.helpers.showMessage(`Selected: ${nodeType} points=${this.selected.points().length / 2}`);

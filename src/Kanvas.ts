@@ -111,6 +111,7 @@ export default class Kanvas {
 
   async selectNode(node: Konva.Node) {
     this.selected = node;
+    if (!this.selected) return;
     const nodeType = this.selected.getClassName();
     if (nodeType === 'Image') this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else if (nodeType === 'Line') this.helpers.showMessage(`Selected: ${nodeType} points=${(this.selected as Konva.Line).points().length / 2}`);
