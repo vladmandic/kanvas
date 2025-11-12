@@ -1,6 +1,5 @@
 import Konva from 'konva';
 import Kanvas from './Kanvas';
-import { fillTransparent } from './Fill';
 
 function hexToGrayscale(hex: string) {
   const _hex = hex.replace('#', '');
@@ -18,8 +17,6 @@ export default class Paint {
   brushOpacity: number = 1;
   brushMode: string = 'source-over';
   brushColor: string = '#ffffff';
-  outpaintBlur: number = 0.1;
-  outpaintExpand: number = -15;
   textFont: string = 'Calibri';
   textValue: string = 'Hello World';
   isPainting: boolean = false;
@@ -81,70 +78,7 @@ export default class Paint {
   }
 
   stopPaint() {
-    // this.k.layer.find('Line').forEach((line) => line.destroy());
-    // this.k.layer.find('Transformer').forEach((t) => t.destroy());
     this.isPainting = false;
-    this.k.layer.batchDraw();
-  }
-
-  fillOutpaint() {
-    const canvas = this.k.imageLayer.toCanvas({ imageSmoothingEnabled: false }) as HTMLCanvasElement;
-    const { top, bottom, left, right } = fillTransparent(canvas, 0);
-    for (const fill of [top, bottom, left, right]) {
-      const konvaImg = new Konva.Image({
-        x: 0,
-        y: 0,
-        image: fill,
-        width: this.k.stage.width(),
-        height: this.k.stage.height(),
-      });
-      konvaImg.name('fill');
-      konvaImg.cache({ imageSmoothingEnabled: false });
-      // konvaImg.filters([Konva.Filters.Blur]);
-      // konvaImg.blurRadius(10);
-      this.k.imageGroup.add(konvaImg);
-      this.k.imageLayer.batchDraw();
-    }
-  }
-
-  startOutpaint() {
-    this.k.stopActions();
-    this.k.imageMode = 'outpaint';
-    this.k.helpers.showMessage(`Image mode=outpaint blur=${this.k.paint.outpaintBlur} expand=${this.k.paint.outpaintExpand}`);
-    if (this.k.settings.settings.outpaintFill) {
-      this.fillOutpaint(); // edges
-      this.fillOutpaint(); // corners
-    }
-    const fillRect = new Konva.Rect({
-      x: 0,
-      y: 0,
-      width: this.k.stage.width(),
-      height: this.k.stage.height(),
-      fill: 'white',
-      // opacity: 0.5,
-    });
-    this.k.maskGroup.add(fillRect);
-    const images = this.k.stage.find('Image');
-    for (const image of images) {
-      if (image.name() === 'fill') continue;
-      image.cache();
-      const imageRect = new Konva.Rect({
-        x: image.x() - (this.outpaintExpand / 2),
-        y: image.y() - (this.outpaintExpand / 2),
-        width: (image.width() * image.scaleX()) + (this.outpaintExpand),
-        height: (image.height() * image.scaleY()) + (this.outpaintExpand),
-        fill: 'black',
-        globalCompositeOperation: 'destination-out', // punch hole
-      });
-      this.k.maskGroup.add(imageRect);
-    }
-    this.k.maskGroup.cache();
-    this.k.maskGroup.filters([Konva.Filters.Blur]);
-    this.k.maskGroup.blurRadius(this.outpaintBlur * 100);
-    this.k.layer.batchDraw();
-  }
-
-  stopOutpaint() {
     this.k.layer.batchDraw();
   }
 

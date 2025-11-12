@@ -5,6 +5,7 @@ import Toolbar from './Toolbar';
 import Upload from './Upload';
 import Resize from './Resize';
 import Paint from './Paint';
+import Outpaint from './Outpaint';
 import Filter from './Filters';
 import Pan from './Pan';
 
@@ -36,6 +37,7 @@ export default class Kanvas {
   upload: Upload;
   resize: Resize;
   paint: Paint;
+  outpaint: Outpaint;
   filter: Filter;
   pan: Pan;
   // callbacks
@@ -52,6 +54,7 @@ export default class Kanvas {
     this.maskLayer = new Konva.Layer();
     this.maskGroup = new Konva.Group();
     this.maskLayer.add(this.maskGroup);
+    this.maskLayer.opacity(0.5);
     return this.maskLayer;
   }
 
@@ -69,6 +72,7 @@ export default class Kanvas {
     if (this.controls) this.controls.style.display = 'none';
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
+    if (this.outpaint) this.outpaint.outpaintActive = false;
   }
 
   constructor(containerId: string) {
@@ -90,6 +94,7 @@ export default class Kanvas {
     this.resize = new Resize(this);
     this.upload = new Upload(this);
     this.paint = new Paint(this);
+    this.outpaint = new Outpaint(this);
     this.filter = new Filter(this);
     this.pan = new Pan(this);
 
@@ -133,7 +138,6 @@ export default class Kanvas {
     this.resize.stopClip();
     this.resize.stopResize();
     this.paint.stopPaint();
-    this.paint.stopOutpaint();
     /*
     const shapes = this.k.stage.find('Shape');
     for (const shape of shapes) {
@@ -189,7 +193,6 @@ export default class Kanvas {
       maskData = maskCanvas.toDataURL('image/png');
     }
     if (!imageData) {
-      // this.helpers.showMessage('No image');
       return null;
     }
     const result = { kanvas: true };

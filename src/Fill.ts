@@ -1,166 +1,111 @@
-/**
- * Do not modify the source canvas. Return four canvases (top, bottom, left, right)
- * where transparent pixels have been filled from the nearest non-transparent pixel
- * when looking strictly in the given direction:
- *  - top: source pixels must be above (smaller y)
- *  - bottom: source pixels must be below (larger y)
- *  - left: source pixels must be to the left (smaller x)
- *  - right: source pixels must be to the right (larger x)
- *
- * Original non-transparent pixels are left transparent in returned canvases (so
- * each returned canvas contains only filled pixels).
- *
- * @param canvas source HTMLCanvasElement (not modified)
- * @param alphaThreshold treat pixels with alpha <= threshold as "transparent" (0-255)
- * @returns object with canvases: { top, bottom, left, right }
- */
-export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold = 0): {
-  top: HTMLCanvasElement;
-  bottom: HTMLCanvasElement;
-  left: HTMLCanvasElement;
-  right: HTMLCanvasElement;
-} {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    const empty = document.createElement('canvas');
-    return { top: empty, bottom: empty, left: empty, right: empty };
+export function fillTransparent(canvas: HTMLCanvasElement, alphaThreshold: number = 0): HTMLCanvasElement {
+  const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  const w: number = canvas.width;
+  const h: number = canvas.height;
+  if (w === 0 || h === 0) return canvas;
+
+  const img: ImageData = ctx.getImageData(0, 0, w, h);
+  const data: Uint8ClampedArray = img.data;
+  const total: number = w * h;
+
+  const visited: Uint8Array = new Uint8Array(total); // 0 = unvisited, 1 = visited
+  const assigned: Uint8ClampedArray = new Uint8ClampedArray(total * 4); // r,g,b,a for each pixel
+  const queue: Uint32Array = new Uint32Array(total); // BFS queue (indices)
+  let qHead: number = 0;
+  let qTail: number = 0;
+
+  // initialize: enqueue all non-transparent pixels as BFS sources
+  for (let i: number = 0, p: number = 0; i < total; ++i, p += 4) {
+    const a: number = data[p + 3];
+    if (a > alphaThreshold) {
+      visited[i] = 1;
+      assigned[p] = data[p];
+      assigned[p + 1] = data[p + 1];
+      assigned[p + 2] = data[p + 2];
+      assigned[p + 3] = a;
+      queue[qTail++] = i;
+    }
   }
 
-  const w = canvas.width;
-  const h = canvas.height;
-  if (w === 0 || h === 0) {
-    const empty = document.createElement('canvas');
-    empty.width = w;
-    empty.height = h;
-    return { top: empty, bottom: empty, left: empty, right: empty };
-  }
+  // nothing to propagate
+  if (qHead === qTail) return canvas;
 
-  const src = ctx.getImageData(0, 0, w, h);
-  const sdata = src.data; // Uint8ClampedArray
-  const total = w * h;
+  // BFS neighbors using linear indices; check row boundaries for left/right
+  while (qHead < qTail) {
+    const idx: number = queue[qHead++];
+    const pos: number = idx * 4;
+    const y: number = Math.floor(idx / w);
+    const x: number = idx - y * w;
 
-  // prepare output buffers (initialized transparent)
-  const topBuf = new Uint8ClampedArray(total * 4);
-  const bottomBuf = new Uint8ClampedArray(total * 4);
-  const leftBuf = new Uint8ClampedArray(total * 4);
-  const rightBuf = new Uint8ClampedArray(total * 4);
+    // right
+    if (x + 1 < w) {
+      const nIdx: number = idx + 1;
+      if (!visited[nIdx]) {
+        const nPos: number = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
 
-  const writePixel = (buf: Uint8ClampedArray, p: number, r: number, g: number, b: number, a: number) => { // helper to write color into output buffer at pixel index p (byte offset)
-    buf[p + 0] = r; // eslint-disable-line no-param-reassign
-    buf[p + 1] = g; // eslint-disable-line no-param-reassign
-    buf[p + 2] = b; // eslint-disable-line no-param-reassign
-    buf[p + 3] = a; // eslint-disable-line no-param-reassign
-  };
+    // left
+    if (x - 1 >= 0) {
+      const nIdx: number = idx - 1;
+      if (!visited[nIdx]) {
+        const nPos: number = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
 
-  for (let x = 0; x <= w; ++x) { // scan columns top->bottom, propagate last seen non-transparent color downward
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    for (let y = 0; y < h; ++y) {
-      const idx = (y * w + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) { // source pixel: update last, but we DO NOT copy source into outputs (leave them transparent)
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(topBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255); // fill this transparent pixel with last seen color
+    // down
+    if (y + 1 < h) {
+      const nIdx: number = idx + w;
+      if (!visited[nIdx]) {
+        const nPos: number = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
+
+    // up
+    if (y - 1 >= 0) {
+      const nIdx: number = idx - w;
+      if (!visited[nIdx]) {
+        const nPos: number = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
       }
     }
   }
 
-  for (let x = 0; x <= w; ++x) { // scan columns bottom->top, propagate last seen non-transparent upward
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    for (let y = h; y >= 0; --y) {
-      const idx = (y * w + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(bottomBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
+  // write filled colors back only for originally transparent pixels
+  for (let i: number = 0, p: number = 0; i < total; ++i, p += 4) {
+    if (data[p + 3] <= alphaThreshold && assigned[p + 3] !== 0) {
+      data[p] = assigned[p];
+      data[p + 1] = assigned[p + 1];
+      data[p + 2] = assigned[p + 2];
+      data[p + 3] = assigned[p + 3] || 255; // preserve assigned alpha if present, otherwise make fully opaque
     }
   }
 
-  for (let y = 0; y <= h; ++y) { // scan rows left->right, propagate last seen non-transparent to the right
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    const rowBase = y * w;
-    for (let x = 0; x < w; ++x) {
-      const idx = (rowBase + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(leftBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-
-  for (let y = 0; y <= h; ++y) { // scan rows right->left, propagate last seen non-transparent to the left
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    const rowBase = y * w;
-    for (let x = w; x >= 0; --x) {
-      const idx = (rowBase + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(rightBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-
-  // create canvases and put image data
-  const makeCanvasFromBuf = (buf: ImageDataArray) => { // eslint-disable-line no-undef
-    const out = document.createElement('canvas');
-    out.width = w;
-    out.height = h;
-    const oc = out.getContext('2d');
-    if (!oc) return out;
-    const tmp = document.createElement('canvas'); // temporary canvas to create ImageData
-    tmp.width = w;
-    tmp.height = h;
-    const tc = tmp.getContext('2d');
-    if (!tc) return out;
-    const img = new ImageData(buf, w, h);
-    tc.putImageData(img, 0, 0);
-    // oc.filter = 'blur(4px)';
-    oc.drawImage(tmp, 0, 0);
-    return out;
-  };
-
-  const topCanvas = makeCanvasFromBuf(topBuf);
-  const bottomCanvas = makeCanvasFromBuf(bottomBuf);
-  const leftCanvas = makeCanvasFromBuf(leftBuf);
-  const rightCanvas = makeCanvasFromBuf(rightBuf);
-
-  return { top: topCanvas, bottom: bottomCanvas, left: leftCanvas, right: rightCanvas };
+  ctx.putImageData(img, 0, 0);
+  return canvas;
 }

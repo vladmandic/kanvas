@@ -4,3 +4,8 @@
   font-weight: normal;
   font-style: normal;
 }
+
+ input[type="number"] {
+  vertical-align: middle !important;
+ }
+ 

@@ -56,8 +56,8 @@ export default class Toolbar {
 
         <span id="${this.k.containerId}-outpaint-controls" class="kanvas-section">
           <span class="kanvas-separator"> | </span>
-          <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.1" title="Outpaint edge blur" />
-          <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="-100" max="100" step="1" value="-15 " title="Outpaint edge expand" />
+          <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.35" title="Outpaint edge blur" />
+          <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="0" max="1" step="0.01" value="0.15" title="Outpaint edge expand" />
         </span>
 
         <span id="${this.k.containerId}-filter-controls" class="kanvas-section">
@@ -228,6 +228,7 @@ export default class Toolbar {
       document.getElementById(`${this.k.containerId}-button-zoomlock`)?.classList.toggle('active');
       this.k.resize.fitStage(this.k.container);
     });
+
     // group: settings,info
     document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -319,22 +320,29 @@ export default class Toolbar {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = 'outpaint';
-      this.resetButtons();
-      this.k.paint.startOutpaint();
-      document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.add('active');
-      document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.add('active');
+      const outpaintButton = document.getElementById(`${this.k.containerId}-button-outpaint`);
+      if (outpaintButton?.classList.contains('active')) {
+        document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.remove('active');
+        document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.remove('active');
+        this.k.outpaint.doOutpaint();
+      } else {
+        this.k.stopActions();
+        this.resetButtons();
+        document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.add('active');
+        document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.add('active');
+      }
     });
     document.getElementById(`${this.k.containerId}-outpaint-expand`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.k.paint.outpaintExpand = parseInt((e.target as HTMLInputElement).value, 10);
-      this.k.paint.startOutpaint();
+      this.k.outpaint.outpaintExpand = parseFloat((e.target as HTMLInputElement).value);
+      if (this.k.outpaint.outpaintExpand < 0 || this.k.outpaint.outpaintExpand > 1) this.k.outpaint.outpaintExpand = 0.1;
     });
     document.getElementById(`${this.k.containerId}-outpaint-blur`)?.addEventListener('input', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.k.paint.outpaintBlur = parseFloat((e.target as HTMLInputElement).value);
-      this.k.paint.startOutpaint();
+      this.k.outpaint.outpaintBlur = parseFloat((e.target as HTMLInputElement).value);
+      if (this.k.outpaint.outpaintBlur < 0 || this.k.outpaint.outpaintBlur > 1) this.k.outpaint.outpaintBlur = 0.1;
     });
 
     // group: filters

@@ -11678,8 +11678,8 @@ var Toolbar = class {
 
         <span id="${this.k.containerId}-outpaint-controls" class="kanvas-section">
           <span class="kanvas-separator"> | </span>
-          <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.1" title="Outpaint edge blur" />
-          <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="-100" max="100" step="1" value="-15 " title="Outpaint edge expand" />
+          <input type="range" id="${this.k.containerId}-outpaint-blur" class="kanvas-slider" min="0" max="1" step="0.01" value="0.35" title="Outpaint edge blur" />
+          <input type="range" id="${this.k.containerId}-outpaint-expand" class="kanvas-slider" min="0" max="1" step="0.01" value="0.15" title="Outpaint edge expand" />
         </span>
 
         <span id="${this.k.containerId}-filter-controls" class="kanvas-section">
@@ -11922,22 +11922,29 @@ var Toolbar = class {
       e.preventDefault();
       e.stopPropagation();
       this.k.imageMode = "outpaint";
-      this.resetButtons();
-      this.k.paint.startOutpaint();
-      document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.add("active");
-      document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.add("active");
+      const outpaintButton = document.getElementById(`${this.k.containerId}-button-outpaint`);
+      if (outpaintButton?.classList.contains("active")) {
+        document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.remove("active");
+        document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.remove("active");
+        this.k.outpaint.doOutpaint();
+      } else {
+        this.k.stopActions();
+        this.resetButtons();
+        document.getElementById(`${this.k.containerId}-button-outpaint`)?.classList.add("active");
+        document.getElementById(`${this.k.containerId}-outpaint-controls`)?.classList.add("active");
+      }
     });
     document.getElementById(`${this.k.containerId}-outpaint-expand`)?.addEventListener("input", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.k.paint.outpaintExpand = parseInt(e.target.value, 10);
-      this.k.paint.startOutpaint();
+      this.k.outpaint.outpaintExpand = parseFloat(e.target.value);
+      if (this.k.outpaint.outpaintExpand < 0 || this.k.outpaint.outpaintExpand > 1) this.k.outpaint.outpaintExpand = 0.1;
     });
     document.getElementById(`${this.k.containerId}-outpaint-blur`)?.addEventListener("input", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.k.paint.outpaintBlur = parseFloat(e.target.value);
-      this.k.paint.startOutpaint();
+      this.k.outpaint.outpaintBlur = parseFloat(e.target.value);
+      if (this.k.outpaint.outpaintBlur < 0 || this.k.outpaint.outpaintBlur > 1) this.k.outpaint.outpaintBlur = 0.1;
     });
     document.getElementById(`${this.k.containerId}-button-filters`)?.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -12208,139 +12215,6 @@ var Resize = class {
   }
 };
 
-// src/Fill.ts
-function fillTransparent(canvas, alphaThreshold = 0) {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const empty = document.createElement("canvas");
-    return { top: empty, bottom: empty, left: empty, right: empty };
-  }
-  const w = canvas.width;
-  const h = canvas.height;
-  if (w === 0 || h === 0) {
-    const empty = document.createElement("canvas");
-    empty.width = w;
-    empty.height = h;
-    return { top: empty, bottom: empty, left: empty, right: empty };
-  }
-  const src = ctx.getImageData(0, 0, w, h);
-  const sdata = src.data;
-  const total = w * h;
-  const topBuf = new Uint8ClampedArray(total * 4);
-  const bottomBuf = new Uint8ClampedArray(total * 4);
-  const leftBuf = new Uint8ClampedArray(total * 4);
-  const rightBuf = new Uint8ClampedArray(total * 4);
-  const writePixel = (buf, p, r, g, b, a) => {
-    buf[p + 0] = r;
-    buf[p + 1] = g;
-    buf[p + 2] = b;
-    buf[p + 3] = a;
-  };
-  for (let x = 0; x <= w; ++x) {
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    for (let y = 0; y < h; ++y) {
-      const idx = (y * w + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(topBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-  for (let x = 0; x <= w; ++x) {
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    for (let y = h; y >= 0; --y) {
-      const idx = (y * w + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(bottomBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-  for (let y = 0; y <= h; ++y) {
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    const rowBase = y * w;
-    for (let x = 0; x < w; ++x) {
-      const idx = (rowBase + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(leftBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-  for (let y = 0; y <= h; ++y) {
-    let lastR = 0;
-    let lastG = 0;
-    let lastB = 0;
-    let lastA = 0;
-    let haveLast = false;
-    const rowBase = y * w;
-    for (let x = w; x >= 0; --x) {
-      const idx = (rowBase + x) * 4;
-      const a = sdata[idx + 3];
-      if (a > alphaThreshold) {
-        lastR = sdata[idx];
-        lastG = sdata[idx + 1];
-        lastB = sdata[idx + 2];
-        lastA = a;
-        haveLast = true;
-      } else if (haveLast) {
-        writePixel(rightBuf, idx, lastR, lastG, lastB, lastA !== 0 ? lastA : 255);
-      }
-    }
-  }
-  const makeCanvasFromBuf = (buf) => {
-    const out = document.createElement("canvas");
-    out.width = w;
-    out.height = h;
-    const oc = out.getContext("2d");
-    if (!oc) return out;
-    const tmp = document.createElement("canvas");
-    tmp.width = w;
-    tmp.height = h;
-    const tc = tmp.getContext("2d");
-    if (!tc) return out;
-    const img = new ImageData(buf, w, h);
-    tc.putImageData(img, 0, 0);
-    oc.drawImage(tmp, 0, 0);
-    return out;
-  };
-  const topCanvas = makeCanvasFromBuf(topBuf);
-  const bottomCanvas = makeCanvasFromBuf(bottomBuf);
-  const leftCanvas = makeCanvasFromBuf(leftBuf);
-  const rightCanvas = makeCanvasFromBuf(rightBuf);
-  return { top: topCanvas, bottom: bottomCanvas, left: leftCanvas, right: rightCanvas };
-}
-
 // src/Paint.ts
 function hexToGrayscale(hex) {
   const _hex = hex.replace("#", "");
@@ -12357,8 +12231,6 @@ var Paint = class {
   brushOpacity = 1;
   brushMode = "source-over";
   brushColor = "#ffffff";
-  outpaintBlur = 0.1;
-  outpaintExpand = -15;
   textFont = "Calibri";
   textValue = "Hello World";
   isPainting = false;
@@ -12419,63 +12291,6 @@ var Paint = class {
     this.isPainting = false;
     this.k.layer.batchDraw();
   }
-  fillOutpaint() {
-    const canvas = this.k.imageLayer.toCanvas({ imageSmoothingEnabled: false });
-    const { top, bottom, left, right } = fillTransparent(canvas, 0);
-    for (const fill of [top, bottom, left, right]) {
-      const konvaImg = new lib_default.Image({
-        x: 0,
-        y: 0,
-        image: fill,
-        width: this.k.stage.width(),
-        height: this.k.stage.height()
-      });
-      konvaImg.name("fill");
-      konvaImg.cache({ imageSmoothingEnabled: false });
-      this.k.imageGroup.add(konvaImg);
-      this.k.imageLayer.batchDraw();
-    }
-  }
-  startOutpaint() {
-    this.k.stopActions();
-    this.k.imageMode = "outpaint";
-    this.k.helpers.showMessage(`Image mode=outpaint blur=${this.k.paint.outpaintBlur} expand=${this.k.paint.outpaintExpand}`);
-    if (this.k.settings.settings.outpaintFill) {
-      this.fillOutpaint();
-      this.fillOutpaint();
-    }
-    const fillRect = new lib_default.Rect({
-      x: 0,
-      y: 0,
-      width: this.k.stage.width(),
-      height: this.k.stage.height(),
-      fill: "white"
-      // opacity: 0.5,
-    });
-    this.k.maskGroup.add(fillRect);
-    const images = this.k.stage.find("Image");
-    for (const image of images) {
-      if (image.name() === "fill") continue;
-      image.cache();
-      const imageRect = new lib_default.Rect({
-        x: image.x() - this.outpaintExpand / 2,
-        y: image.y() - this.outpaintExpand / 2,
-        width: image.width() * image.scaleX() + this.outpaintExpand,
-        height: image.height() * image.scaleY() + this.outpaintExpand,
-        fill: "black",
-        globalCompositeOperation: "destination-out"
-        // punch hole
-      });
-      this.k.maskGroup.add(imageRect);
-    }
-    this.k.maskGroup.cache();
-    this.k.maskGroup.filters([lib_default.Filters.Blur]);
-    this.k.maskGroup.blurRadius(this.outpaintBlur * 100);
-    this.k.layer.batchDraw();
-  }
-  stopOutpaint() {
-    this.k.layer.batchDraw();
-  }
   startText() {
     this.k.stopActions();
     let isText = true;
@@ -12519,6 +12334,172 @@ var Paint = class {
       this.k.layer.batchDraw();
       isText = false;
     });
+  }
+};
+
+// src/Fill.ts
+function fillTransparent(canvas, alphaThreshold = 0) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w === 0 || h === 0) return canvas;
+  const img = ctx.getImageData(0, 0, w, h);
+  const data = img.data;
+  const total = w * h;
+  const visited = new Uint8Array(total);
+  const assigned = new Uint8ClampedArray(total * 4);
+  const queue = new Uint32Array(total);
+  let qHead = 0;
+  let qTail = 0;
+  for (let i = 0, p = 0; i < total; ++i, p += 4) {
+    const a = data[p + 3];
+    if (a > alphaThreshold) {
+      visited[i] = 1;
+      assigned[p] = data[p];
+      assigned[p + 1] = data[p + 1];
+      assigned[p + 2] = data[p + 2];
+      assigned[p + 3] = a;
+      queue[qTail++] = i;
+    }
+  }
+  if (qHead === qTail) return canvas;
+  while (qHead < qTail) {
+    const idx = queue[qHead++];
+    const pos = idx * 4;
+    const y = Math.floor(idx / w);
+    const x = idx - y * w;
+    if (x + 1 < w) {
+      const nIdx = idx + 1;
+      if (!visited[nIdx]) {
+        const nPos = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
+    if (x - 1 >= 0) {
+      const nIdx = idx - 1;
+      if (!visited[nIdx]) {
+        const nPos = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
+    if (y + 1 < h) {
+      const nIdx = idx + w;
+      if (!visited[nIdx]) {
+        const nPos = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
+    if (y - 1 >= 0) {
+      const nIdx = idx - w;
+      if (!visited[nIdx]) {
+        const nPos = nIdx * 4;
+        assigned[nPos] = assigned[pos];
+        assigned[nPos + 1] = assigned[pos + 1];
+        assigned[nPos + 2] = assigned[pos + 2];
+        assigned[nPos + 3] = assigned[pos + 3];
+        visited[nIdx] = 1;
+        queue[qTail++] = nIdx;
+      }
+    }
+  }
+  for (let i = 0, p = 0; i < total; ++i, p += 4) {
+    if (data[p + 3] <= alphaThreshold && assigned[p + 3] !== 0) {
+      data[p] = assigned[p];
+      data[p + 1] = assigned[p + 1];
+      data[p + 2] = assigned[p + 2];
+      data[p + 3] = assigned[p + 3] || 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+// src/Outpaint.ts
+var Outpaint = class {
+  k;
+  outpaintBlur = 0.1;
+  outpaintExpand = 0.1;
+  outpaintActive = false;
+  constructor(k) {
+    this.k = k;
+  }
+  fillOutpaint() {
+    this.k.imageLayer.cache();
+    const canvas = this.k.imageLayer.toCanvas({ imageSmoothingEnabled: false });
+    const filled = fillTransparent(canvas, 0);
+    const konvaImg = new lib_default.Image({ x: 0, y: 0, image: filled });
+    konvaImg.name("fill");
+    konvaImg.cache({ imageSmoothingEnabled: false });
+    this.k.imageGroup.add(konvaImg);
+    this.k.imageGroup.cache();
+    this.k.imageLayer.cache();
+    this.k.imageLayer.batchDraw();
+  }
+  remove() {
+    this.k.maskGroup.children.forEach(async (child) => {
+      if (child.name() === "mask-outpaint" || child.name() === "fill") await child.destroy();
+    });
+    this.k.imageGroup.children.forEach(async (child) => {
+      if (child.name() === "mask-outpaint" || child.name() === "fill") await child.destroy();
+    });
+    this.k.imageGroup.cache();
+    this.k.layer.batchDraw();
+  }
+  doOutpaint() {
+    this.k.imageMode = "outpaint";
+    this.k.helpers.showMessage(`Image mode=outpaint blur=${this.outpaintBlur} expand=${this.outpaintExpand}`);
+    this.remove();
+    if (this.k.settings.settings.outpaintFill) this.fillOutpaint();
+    const fillRect = new lib_default.Rect({
+      x: 0,
+      y: 0,
+      width: this.k.stage.width(),
+      height: this.k.stage.height(),
+      fill: "white"
+      // opacity: 0.6,
+    });
+    fillRect.name("mask-outpaint");
+    this.k.maskGroup.add(fillRect);
+    const images = this.k.stage.find("Image");
+    for (const image of images) {
+      if (image.name() === "fill") continue;
+      image.cache();
+      const expandX = Math.round(this.outpaintExpand * image.width());
+      const expandY = Math.round(this.outpaintExpand * image.height());
+      const imageRect = new lib_default.Rect({
+        x: Math.floor(image.x() + expandX / 2),
+        y: Math.floor(image.y() + expandY / 2),
+        width: Math.round(image.width() * image.scaleX() - expandX),
+        height: Math.round(image.height() * image.scaleY() - expandY),
+        fill: "black",
+        globalCompositeOperation: "destination-out"
+        // punch hole
+      });
+      this.k.maskGroup.add(imageRect);
+    }
+    this.k.maskGroup.cache();
+    if (this.outpaintBlur > 0) {
+      this.k.maskGroup.filters([lib_default.Filters.Blur]);
+      this.k.maskGroup.blurRadius(this.outpaintBlur * 100);
+    }
+    this.k.layer.batchDraw();
+    this.outpaintActive = true;
   }
 };
 
@@ -12642,6 +12623,7 @@ var Kanvas = class {
   upload;
   resize;
   paint;
+  outpaint;
   filter;
   pan;
   // callbacks
@@ -12656,6 +12638,7 @@ var Kanvas = class {
     this.maskLayer = new lib_default.Layer();
     this.maskGroup = new lib_default.Group();
     this.maskLayer.add(this.maskGroup);
+    this.maskLayer.opacity(0.5);
     return this.maskLayer;
   }
   initialize() {
@@ -12671,6 +12654,7 @@ var Kanvas = class {
     if (this.controls) this.controls.style.display = "none";
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
+    if (this.outpaint) this.outpaint.outpaintActive = false;
   }
   constructor(containerId) {
     this.onchange = () => {
@@ -12690,6 +12674,7 @@ var Kanvas = class {
     this.resize = new Resize(this);
     this.upload = new Upload(this);
     this.paint = new Paint(this);
+    this.outpaint = new Outpaint(this);
     this.filter = new Filter(this);
     this.pan = new Pan(this);
     if (this.initial) this.helpers.kanvasLog(`konva=${lib_default.version} width=${this.stage.width()} height=${this.stage.height()} id="${this.containerId}"`);
@@ -12724,7 +12709,6 @@ var Kanvas = class {
     this.resize.stopClip();
     this.resize.stopResize();
     this.paint.stopPaint();
-    this.paint.stopOutpaint();
   }
   getImageData() {
     const imageCanvas = this.imageLayer.toCanvas({ x: 0, y: 0, width: this.imageLayer.width(), height: this.imageLayer.height() });
