@@ -13,8 +13,8 @@ export default class Kanvas {
   initial: boolean = true;
   // elements
   containerId: string;
-  wrapper: HTMLElement;
-  container: HTMLElement;
+  wrapper: HTMLDivElement;
+  container: HTMLDivElement;
   controls: HTMLSpanElement;
   // konva objects
   stage!: Konva.Stage;
@@ -40,6 +40,7 @@ export default class Kanvas {
   outpaint: Outpaint;
   filter: Filter;
   pan: Pan;
+
   // callbacks
   onchange: () => void;
 
@@ -58,12 +59,18 @@ export default class Kanvas {
     return this.maskLayer;
   }
 
-  initialize() {
-    // init stage/layer/group
+  destroy(): void {
+    if (this.stage) {
+      try { this.stage.destroy(); } catch { /* ignore */ }
+    }
+  }
+
+  initialize(defaultWidth = 1024, defaultHeight = 256) {
+    this.destroy();
     this.stage = new Konva.Stage({
       container: `${this.containerId}-kanvas`,
-      width: 1024,
-      height: 256,
+      width: defaultWidth,
+      height: defaultHeight,
     });
     this.stage.add(this.initImage());
     this.stage.add(this.initMask());
@@ -73,19 +80,39 @@ export default class Kanvas {
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
     if (this.outpaint) this.outpaint.outpaintActive = false;
+    let resizeTimer: number | undefined;
+    const ro = new ResizeObserver(() => {
+      if (resizeTimer) cancelAnimationFrame(resizeTimer);
+      resizeTimer = requestAnimationFrame(() => this.resize.fitStage(this.wrapper));
+    });
+    ro.observe(this.wrapper);
   }
 
-  constructor(containerId: string) {
+  constructor(containerId: string, opts: { width?: number; height?: number } = {}) {
     this.onchange = () => {};
     this.containerId = containerId;
-    this.wrapper = document.getElementById(containerId) as HTMLElement;
-    this.wrapper.className = 'kanvas-wrapper';
-    this.wrapper.innerHTML = `
-      <div id="${this.containerId}-toolbar"></div>
-      <div class="kanvas" id="${this.containerId}-kanvas"></div>
-    `;
-    this.container = document.getElementById(`${this.containerId}-kanvas`) as HTMLElement;
-    this.initialize();
+    const wrapperEl = document.getElementById(containerId);
+    if (!wrapperEl) {
+      throw new Error(`Kanvas: container=${containerId} not found`);
+    }
+    this.wrapper = wrapperEl as HTMLDivElement;
+    this.wrapper.classList.add('kanvas-wrapper');
+    // create nodes with DOM APIs (safer than innerHTML)
+    const toolbarEl = document.createElement('div');
+    toolbarEl.id = `${this.containerId}-toolbar`;
+    const canvasEl = document.createElement('div');
+    canvasEl.className = 'kanvas';
+    canvasEl.id = `${this.containerId}-kanvas`;
+    // clear wrapper and append
+    this.wrapper.textContent = '';
+    this.wrapper.appendChild(toolbarEl);
+    this.wrapper.appendChild(canvasEl);
+    this.container = canvasEl;
+
+    // store initial width/height from opts or defaults
+    const stageWidth = opts.width ?? 1024;
+    const stageHeight = opts.height ?? 256;
+    this.initialize(stageWidth, stageHeight);
 
     // init helpers
     this.helpers = new Helpers(this);
@@ -120,6 +147,7 @@ export default class Kanvas {
     const nodeType = this.selected.getClassName();
     if (nodeType === 'Image') this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else if (nodeType === 'Line') this.helpers.showMessage(`Selected: ${nodeType} points=${(this.selected as Konva.Line).points().length / 2}`);
+    else if (nodeType === 'Text') this.helpers.showMessage(`Selected: ${nodeType} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else this.helpers.showMessage(`Selected: ${nodeType}`);
   }
 
@@ -207,7 +235,6 @@ export default class Kanvas {
 declare global {
   interface Window {
     Kanvas: typeof Kanvas;
-    kanvas: (el: string) => Kanvas; // eslint-disable-line no-unused-vars
   }
 }
 window.Kanvas = Kanvas;

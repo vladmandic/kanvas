@@ -12303,17 +12303,24 @@ var Paint = class {
     });
     this.k.stage.on("mouseup touchend", () => {
       if (!isText) return;
+      const textVal = this.k.paint.textValue + " ";
+      if (!textVal || textVal.trim() === "") return;
       pos1 = this.k.stage.getPointerPosition();
+      if (!pos0 || !pos1) return;
       this.k.toolbar.resetButtons();
       let fontSize = 4;
-      while (true) {
-        if (!pos0 || !pos1) continue;
+      const maxFontSize = 500;
+      while (fontSize < maxFontSize) {
+        const x0 = Math.min(pos0.x, pos1.x) / this.k.resize.scale;
+        const y0 = Math.min(pos0.y, pos1.y) / this.k.resize.scale;
+        const x1 = Math.max(pos0.x, pos1.x) / this.k.resize.scale;
+        const y1 = Math.max(pos0.y, pos1.y) / this.k.resize.scale;
         const text = new lib_default.Text({
-          x: pos0.x,
-          y: pos0.y,
-          width: pos1.x - pos0.x,
-          height: pos1.y - pos0.y,
-          text: this.k.paint.textValue,
+          x: x0,
+          y: y0,
+          width: x1 - x0,
+          height: y1 - y0,
+          text: textVal,
           fontSize,
           fontFamily: this.k.paint.textFont,
           fill: this.k.paint.brushColor,
@@ -12322,14 +12329,16 @@ var Paint = class {
           globalCompositeOperation: this.k.paint.brushMode,
           draggable: true
         });
-        const textSize = text.measureSize(this.k.paint.textValue);
-        if (textSize.height > pos1.y - pos0.y || textSize.width > pos1.x - pos0.x) {
+        const textSize = text.measureSize(textVal);
+        if (textSize.height >= y1 - y0 || textSize.width >= x1 - x0) {
+          this.k.helpers.showMessage(`Text: "${textVal}" size=${fontSize}`);
           this.k.group.add(text);
+          text.on("click", () => this.k.selectNode(text));
           break;
         } else {
           text.destroy();
         }
-        fontSize += 2;
+        fontSize += 1;
       }
       this.k.layer.batchDraw();
       isText = false;
@@ -12641,11 +12650,20 @@ var Kanvas = class {
     this.maskLayer.opacity(0.5);
     return this.maskLayer;
   }
-  initialize() {
+  destroy() {
+    if (this.stage) {
+      try {
+        this.stage.destroy();
+      } catch {
+      }
+    }
+  }
+  initialize(defaultWidth = 1024, defaultHeight = 256) {
+    this.destroy();
     this.stage = new lib_default.Stage({
       container: `${this.containerId}-kanvas`,
-      width: 1024,
-      height: 256
+      width: defaultWidth,
+      height: defaultHeight
     });
     this.stage.add(this.initImage());
     this.stage.add(this.initMask());
@@ -12655,19 +12673,35 @@ var Kanvas = class {
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
     if (this.outpaint) this.outpaint.outpaintActive = false;
+    let resizeTimer;
+    const ro = new ResizeObserver(() => {
+      if (resizeTimer) cancelAnimationFrame(resizeTimer);
+      resizeTimer = requestAnimationFrame(() => this.resize.fitStage(this.wrapper));
+    });
+    ro.observe(this.wrapper);
   }
-  constructor(containerId) {
+  constructor(containerId, opts = {}) {
     this.onchange = () => {
     };
     this.containerId = containerId;
-    this.wrapper = document.getElementById(containerId);
-    this.wrapper.className = "kanvas-wrapper";
-    this.wrapper.innerHTML = `
-      <div id="${this.containerId}-toolbar"></div>
-      <div class="kanvas" id="${this.containerId}-kanvas"></div>
-    `;
-    this.container = document.getElementById(`${this.containerId}-kanvas`);
-    this.initialize();
+    const wrapperEl = document.getElementById(containerId);
+    if (!wrapperEl) {
+      throw new Error(`Kanvas: container=${containerId} not found`);
+    }
+    this.wrapper = wrapperEl;
+    this.wrapper.classList.add("kanvas-wrapper");
+    const toolbarEl = document.createElement("div");
+    toolbarEl.id = `${this.containerId}-toolbar`;
+    const canvasEl = document.createElement("div");
+    canvasEl.className = "kanvas";
+    canvasEl.id = `${this.containerId}-kanvas`;
+    this.wrapper.textContent = "";
+    this.wrapper.appendChild(toolbarEl);
+    this.wrapper.appendChild(canvasEl);
+    this.container = canvasEl;
+    const stageWidth = opts.width ?? 1024;
+    const stageHeight = opts.height ?? 256;
+    this.initialize(stageWidth, stageHeight);
     this.helpers = new Helpers(this);
     this.settings = new Settings(this);
     this.toolbar = new Toolbar(this);
@@ -12693,6 +12727,7 @@ var Kanvas = class {
     const nodeType = this.selected.getClassName();
     if (nodeType === "Image") this.helpers.showMessage(`Selected: ${nodeType} x=${Math.round(this.selected.x())} y=${Math.round(this.selected.y())} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else if (nodeType === "Line") this.helpers.showMessage(`Selected: ${nodeType} points=${this.selected.points().length / 2}`);
+    else if (nodeType === "Text") this.helpers.showMessage(`Selected: ${nodeType} width=${Math.round(this.selected.width())} height=${Math.round(this.selected.height())}`);
     else this.helpers.showMessage(`Selected: ${nodeType}`);
   }
   async removeNode(node) {

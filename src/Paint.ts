@@ -94,17 +94,24 @@ export default class Paint {
     });
     this.k.stage.on('mouseup touchend', () => {
       if (!isText) return;
+      const textVal = this.k.paint.textValue + ' ';
+      if (!textVal || textVal.trim() === '') return;
       pos1 = this.k.stage.getPointerPosition();
+      if (!pos0 || !pos1) return;
       this.k.toolbar.resetButtons();
       let fontSize = 4;
-      while (true) { // eslint-disable-line no-constant-condition
-        if (!pos0 || !pos1) continue;
+      const maxFontSize = 500;
+      while (fontSize < maxFontSize) { // eslint-disable-line no-constant-condition
+        const x0 = Math.min(pos0.x, pos1.x) / this.k.resize.scale;
+        const y0 = Math.min(pos0.y, pos1.y) / this.k.resize.scale;
+        const x1 = Math.max(pos0.x, pos1.x) / this.k.resize.scale;
+        const y1 = Math.max(pos0.y, pos1.y) / this.k.resize.scale;
         const text = new Konva.Text({
-          x: pos0.x,
-          y: pos0.y,
-          width: pos1.x - pos0.x,
-          height: pos1.y - pos0.y,
-          text: this.k.paint.textValue,
+          x: x0,
+          y: y0,
+          width: x1 - x0,
+          height: y1 - y0,
+          text: textVal,
           fontSize,
           fontFamily: this.k.paint.textFont,
           fill: this.k.paint.brushColor,
@@ -113,14 +120,16 @@ export default class Paint {
           globalCompositeOperation: this.k.paint.brushMode as CanvasRenderingContext2D['globalCompositeOperation'],
           draggable: true,
         });
-        const textSize = text.measureSize(this.k.paint.textValue);
-        if (textSize.height > (pos1.y - pos0.y) || textSize.width > (pos1.x - pos0.x)) {
+        const textSize = text.measureSize(textVal);
+        if (textSize.height >= (y1 - y0) || textSize.width >= (x1 - x0)) {
+          this.k.helpers.showMessage(`Text: "${textVal}" size=${fontSize}`);
           this.k.group.add(text);
+          text.on('click', () => this.k.selectNode(text));
           break;
         } else {
           text.destroy();
         }
-        fontSize += 2;
+        fontSize += 1;
       }
       this.k.layer.batchDraw();
       isText = false;
