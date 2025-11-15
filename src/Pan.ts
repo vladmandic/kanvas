@@ -16,6 +16,7 @@ export default class Pan {
   }
 
   bindPan() {
+    this.moving = false;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Control') {
         this.k.container.style.cursor = 'default';

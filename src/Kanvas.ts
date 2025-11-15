@@ -80,12 +80,6 @@ export default class Kanvas {
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
     if (this.outpaint) this.outpaint.outpaintActive = false;
-    let resizeTimer: number | undefined;
-    const ro = new ResizeObserver(() => {
-      if (resizeTimer) cancelAnimationFrame(resizeTimer);
-      resizeTimer = requestAnimationFrame(() => this.resize.fitStage(this.wrapper));
-    });
-    ro.observe(this.wrapper);
   }
 
   constructor(containerId: string, opts: { width?: number; height?: number } = {}) {
@@ -137,11 +131,13 @@ export default class Kanvas {
     this.pan.bindPan();
 
     // initial size
-    const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
+    const resizeObserver = new ResizeObserver(() => this.resize.fitStage());
     resizeObserver.observe(this.wrapper);
+    this.resize.fitStage();
   }
 
   async selectNode(node: Konva.Node) {
+    this.pan.moving = false;
     this.selected = node;
     if (!this.selected) return;
     const nodeType = this.selected.getClassName();

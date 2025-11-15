@@ -8,12 +8,13 @@ export default class Resize {
   debounceFit: number = 0;
   debounceResize: number = 0;
   scale: number = 1;
+
   constructor(k: Kanvas) {
     this.k = k;
   }
 
   async initSettings() {
-    this.fitStage(this.k.container);
+    this.fitStage();
   }
 
   async _fitStage(el: HTMLElement) {
@@ -23,6 +24,7 @@ export default class Resize {
     }
     if (this.k.settings.settings.zoomLock) {
       this.k.wrapper.style.overflow = 'auto';
+      this.scale = 1;
     } else {
       this.k.wrapper.style.overflow = 'hidden';
       this.scale = Math.min(
@@ -45,7 +47,8 @@ export default class Resize {
     if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(this.scale * 100)}%`);
   }
 
-  async fitStage(el: HTMLElement) {
+  async fitStage(el: HTMLElement = this.k.wrapper) {
+    // this._fitStage(el);
     clearTimeout(this.debounceFit);
     this.debounceFit = window.setTimeout(() => this._fitStage(el), this.debounce);
   }
@@ -84,7 +87,7 @@ export default class Resize {
       this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
       this.updateSizeInputs();
-      this.fitStage(this.k.container);
+      this.fitStage();
     }
     // limit max size
     if ((this.k.stage.width() > this.k.settings.settings.maxSize) || (this.k.stage.height() > this.k.settings.settings.maxSize)) {
@@ -109,7 +112,7 @@ export default class Resize {
     this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
     this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
     this.k.helpers.showMessage(`Stage width=${width} height=${height} resized`);
-    this.k.resize.fitStage(this.k.container);
+    this.k.resize.fitStage();
   }
 
   startResize() {

@@ -74,7 +74,7 @@ export default class Settings {
   saveSettings() {
     if (window.localStorage) window.localStorage.setItem('sdnext-kanvas', JSON.stringify(this.settings));
     this.setCSS();
-    if (this.k.resize) this.k.resize.fitStage(this.k.container);
+    if (this.k.resize) this.k.resize.fitStage();
   }
 
   showSettings() {

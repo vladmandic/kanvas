@@ -11536,7 +11536,7 @@ var Settings = class {
   saveSettings() {
     if (window.localStorage) window.localStorage.setItem("sdnext-kanvas", JSON.stringify(this.settings));
     this.setCSS();
-    if (this.k.resize) this.k.resize.fitStage(this.k.container);
+    if (this.k.resize) this.k.resize.fitStage();
   }
   showSettings() {
     const isVisible = this.el.style.display === "block";
@@ -11728,6 +11728,7 @@ var Toolbar = class {
     `;
   }
   async resetButtons() {
+    this.k.pan.moving = false;
     document.getElementById(`${this.k.containerId}-button-resize`)?.classList.remove("active");
     document.getElementById(`${this.k.containerId}-button-crop`)?.classList.remove("active");
     document.getElementById(`${this.k.containerId}-button-paint`)?.classList.remove("active");
@@ -11836,7 +11837,7 @@ var Toolbar = class {
       e.stopPropagation();
       this.k.settings.settings.zoomLock = !this.k.settings.settings.zoomLock;
       document.getElementById(`${this.k.containerId}-button-zoomlock`)?.classList.toggle("active");
-      this.k.resize.fitStage(this.k.container);
+      this.k.resize.fitStage();
     });
     document.getElementById(`${this.k.containerId}-button-settings`)?.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -12056,7 +12057,7 @@ var Resize = class {
     this.k = k;
   }
   async initSettings() {
-    this.fitStage(this.k.container);
+    this.fitStage();
   }
   async _fitStage(el) {
     if (!el || el.clientWidth === 0 || el.clientHeight === 0) return;
@@ -12065,6 +12066,7 @@ var Resize = class {
     }
     if (this.k.settings.settings.zoomLock) {
       this.k.wrapper.style.overflow = "auto";
+      this.scale = 1;
     } else {
       this.k.wrapper.style.overflow = "hidden";
       this.scale = Math.min(
@@ -12087,7 +12089,7 @@ var Resize = class {
     }
     if (!this.k.helpers.isEmpty()) this.k.helpers.showMessage(`Zoom: ${Math.round(this.scale * 100)}%`);
   }
-  async fitStage(el) {
+  async fitStage(el = this.k.wrapper) {
     clearTimeout(this.debounceFit);
     this.debounceFit = window.setTimeout(() => this._fitStage(el), this.debounce);
   }
@@ -12122,7 +12124,7 @@ var Resize = class {
       this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
       this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
       this.updateSizeInputs();
-      this.fitStage(this.k.container);
+      this.fitStage();
     }
     if (this.k.stage.width() > this.k.settings.settings.maxSize || this.k.stage.height() > this.k.settings.settings.maxSize) {
       const rescale = Math.min(this.k.settings.settings.maxSize / this.k.stage.width(), this.k.settings.settings.maxSize / this.k.stage.height());
@@ -12144,7 +12146,7 @@ var Resize = class {
     this.k.maskLayer.size({ width: this.k.stage.width(), height: this.k.stage.height() });
     this.k.toolbar.el.style.maxWidth = `${this.k.stage.width()}px`;
     this.k.helpers.showMessage(`Stage width=${width} height=${height} resized`);
-    this.k.resize.fitStage(this.k.container);
+    this.k.resize.fitStage();
   }
   startResize() {
     this.k.stopActions();
@@ -12583,6 +12585,7 @@ var Pan = class {
     );
   }
   bindPan() {
+    this.moving = false;
     window.addEventListener("keydown", (e) => {
       if (e.key === "Control") {
         this.k.container.style.cursor = "default";
@@ -12673,12 +12676,6 @@ var Kanvas = class {
     if (this.helpers) this.helpers.bindStage();
     if (this.pan) this.pan.bindPan();
     if (this.outpaint) this.outpaint.outpaintActive = false;
-    let resizeTimer;
-    const ro = new ResizeObserver(() => {
-      if (resizeTimer) cancelAnimationFrame(resizeTimer);
-      resizeTimer = requestAnimationFrame(() => this.resize.fitStage(this.wrapper));
-    });
-    ro.observe(this.wrapper);
   }
   constructor(containerId, opts = {}) {
     this.onchange = () => {
@@ -12718,10 +12715,12 @@ var Kanvas = class {
     this.helpers.bindStage();
     this.toolbar.bindControls();
     this.pan.bindPan();
-    const resizeObserver = new ResizeObserver(() => this.resize.fitStage(this.wrapper));
+    const resizeObserver = new ResizeObserver(() => this.resize.fitStage());
     resizeObserver.observe(this.wrapper);
+    this.resize.fitStage();
   }
   async selectNode(node) {
+    this.pan.moving = false;
     this.selected = node;
     if (!this.selected) return;
     const nodeType = this.selected.getClassName();
