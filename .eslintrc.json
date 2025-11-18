@@ -40,6 +40,7 @@
     "promise/always-return": "off",
     "promise/catch-or-return": "off",
     "radix": "off",
+    "linebreak-style": "off",
     "no-underscore-dangle": "off",
     "no-restricted-syntax": "off",
     "no-return-assign": "off",
